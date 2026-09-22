@@ -9,7 +9,8 @@
     "start": "tsx server/index.ts",
     "test": "tsx --test tests/*.test.ts",
     "check:live": "tsx scripts/check-live.ts",
-    "setup": "node scripts/setup.mjs",
+    "setup": "tsx scripts/setup.ts",
+    "check:api": "tsx scripts/check-api.ts",
     "export:source": "node scripts/export-source.mjs"
   },
   "dependencies": {

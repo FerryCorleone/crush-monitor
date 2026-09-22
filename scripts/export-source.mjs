@@ -9,9 +9,10 @@ for (const name of ['src','shared','server','tests','public','README.md','README
   await cp(join(root,name), join(out,name), {recursive:true});
 }
 await mkdir(join(out,'scripts'));
-for (const name of ['setup.mjs','check-live.ts','export-source.mjs']) await cp(join(root,'scripts',name),join(out,'scripts',name));
+for (const name of ['setup.ts','check-api.ts','check-live.ts','export-source.mjs']) await cp(join(root,'scripts',name),join(out,'scripts',name));
 const env = await readFile(join(root,'.env'),'utf8').catch(()=>'');
-const secrets = [parse(env).TYPESAFE_API_KEY, process.env.TYPESAFE_API_KEY].filter(v=>v && v.length>8);
+const keys = ['JEV_API_KEY', 'TYPESAFE_API_KEY', 'AI_GATEWAY_API_KEY', 'OPENROUTER_API_KEY'];
+const secrets = keys.flatMap(key => [parse(env)[key], process.env[key]]).filter(v=>v && v.length>8);
 let count=0;
 async function audit(dir) {
   for (const entry of await readdir(dir,{withFileTypes:true})) {

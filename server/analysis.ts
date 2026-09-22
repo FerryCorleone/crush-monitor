@@ -3,13 +3,8 @@ import { AFFINITY_DIMENSIONS, composeAffinity } from "../shared/affinity";
 import { MAX_MESSAGES, MAX_TEXT_CHARS } from "../shared/limits";
 import { INTENTS } from "../shared/intents";
 import { EMOTIONS } from "../shared/labels";
-import {
-  TypeSafeClient,
-  choice,
-  score,
-  noul,
-  type Questions,
-} from "@typesafe-ai/sdk";
+import { choice, score, noul, type Questions } from "@typesafe-ai/sdk";
+import { evaluate } from "./provider";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import {
@@ -338,16 +333,7 @@ export async function analyze(
 ): Promise<AnalysisResponse> {
   const start = performance.now();
   const payload = buildRequest(input);
-  const client = new TypeSafeClient({
-    defaultModel: MODEL,
-    logLevel: "off",
-    timeout: 30000,
-    retry: { maxRetries: 1, backoffInitialMs: 400, maxRetryAfterMs: 3000 },
-  });
-  const deadline = AbortSignal.timeout(45000);
-  const result = await client.systemOne(payload, {
-    signal: signal ? AbortSignal.any([signal, deadline]) : deadline,
-  });
+  const result = await evaluate(payload, signal);
   const a = result.answers;
   const output: AnalysisResponse = {
     revision: input.revision,

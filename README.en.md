@@ -12,7 +12,7 @@ AI doesn't know your relationship or what happens outside the chat. Take the res
 - **Emotions and intentions:** the top three probabilities from 12 emotion and 35 intention categories.
 - **Affection score and reply grades:** a conversation-level score, SSS–D grades for your replies, and suggested next steps.
 - **Ongoing analysis:** paste more messages to continue. Overlapping excerpts are detected, long conversations run in batches, and results survive a page refresh.
-- **Run locally with your own key:** use your own TypeSafe account and API credits. No hosted deployment required.
+- **Run locally with your own key:** choose TypeSafe, Vercel AI Gateway or OpenRouter and use your own API credits. No hosted deployment required.
 
 The interface and analysis labels are currently in Chinese. This README provides English setup instructions; it does not add an English UI.
 
@@ -22,33 +22,56 @@ Jev is TypeSafe's model for structured judgments, returning classifications, sco
 
 - [Launch post by founder Diogo Almeida](https://x.com/CompleteSkeptic/status/2099925682726002904)
 - [Official introduction](https://typesafe.ai/blog/introducing-system-one-models-and-jev)
-- [Get an API key](https://console.typesafe.ai/)
+
+## Get an API key
+
+Choose **one** provider below. All three serve Jev; you do not need three accounts or a Vercel-hosted website.
+
+| Provider | Create a key | Setup choice | Free credits |
+| --- | --- | --- | --- |
+| TypeSafe | Sign in to the [TypeSafe console](https://console.typesafe.ai/), create a key under API Keys and copy it | `typesafe` | New users previously received **$5 in trial credits**; check the console for current availability and amount |
+| Vercel AI Gateway | Sign in to Vercel, open [AI Gateway → API Keys](https://vercel.com/d?to=/%5Bteam%5D/~/ai-gateway/api-keys) and select **Create key**. Use an AI Gateway key, not a Vercel account Access Token | `vercel` | **$5/month** on the free tier; card verification required. Purchasing credits ends the monthly free grant ([details](https://vercel.com/docs/ai-gateway/pricing)) |
+| OpenRouter | Sign in to [OpenRouter Keys](https://openrouter.ai/settings/keys), select **Create Key** and copy the new key | `openrouter` | A small new-user trial allowance, with no fixed amount publicly specified. [Jev is paid](https://openrouter.ai/typesafe/jev-1.13/), not a free model ([details](https://openrouter.ai/support/)) |
+
+Vercel AI Gateway currently requires a valid credit card on the account, including for free usage. Without verification, requests return 403.
+
+Free-credit information checked on 2026-09-22. Make sure the account has available credits and access to Jev; grants and promotions may change, so check the provider's dashboard.
 
 ## Run locally
 
-Install Node.js 22.12+ and get a TypeSafe API key. Download or clone this repository, then run these commands in the project directory. The same commands work on macOS, Windows and Linux.
+Install Node.js 22.12+. Download or clone this repository, then run these commands in the project directory. The same commands work on macOS, Windows and Linux.
 
 ```sh
 npm ci
-npm run setup
+npm run setup -- --en
 ```
 
-Edit the generated `.env`:
-
-```dotenv
-TYPESAFE_API_KEY=your_api_key
-PORT=3178
-HOST=127.0.0.1
-```
-
-Build and start:
+**Choose the provider, then paste its key.** Key input is hidden and saved in the local `.env`. The endpoint and model are set automatically. Setup sends one synthetic test request to verify the connection, using a small amount of API credits without reading your chats.
 
 ```sh
 npm run build
 npm start
 ```
 
-Open **http://127.0.0.1:3178/** and leave the terminal running. Next time, just run `npm start`. Restart after changing your key.
+Open **http://127.0.0.1:3178/** and leave the terminal running. Next time, just run `npm start`. To change providers or keys, run setup again and restart the service; no rebuild is required.
+
+<details>
+<summary>Manual configuration / upgrading an existing installation</summary>
+
+Alternatively, copy `.env.example` to `.env` and edit only these two lines:
+
+```dotenv
+JEV_PROVIDER=vercel
+JEV_API_KEY=your_provider_key
+```
+
+Allowed providers: `typesafe`, `vercel`, `openrouter`. The key must belong to the selected provider. Do not add an API URL or model name. The old `TYPESAFE_API_KEY=...` configuration still works without changes when staying with TypeSafe.
+
+`JEV_API_KEY` takes precedence. If unset, the selected provider uses `TYPESAFE_API_KEY`, `AI_GATEWAY_API_KEY` or `OPENROUTER_API_KEY`, respectively. Credentials are never borrowed from a different provider. Shell environment variables take precedence over `.env`; remove stale shell settings if necessary.
+
+</details>
+
+Run `npm run check:api` to retry the connection test. For 401, check the key; 402, credits; 403, model permissions; 429, rate limits. For network errors, check connectivity to the selected provider. Setup reports saved configuration and successful verification separately.
 
 ## Usage
 
@@ -87,17 +110,26 @@ Multiline bodies and consecutive messages from the same person are preserved. Da
 - Scoring uses recent messages and relevant original excerpts from history, including invitations, care, refusals and retractions. Old scores are not evidence for new scores. Retrieval can miss context.
 - Each model request stays within 500 messages and 12,000 text characters. Overlong individual messages are retained but need splitting before analysis. Paste at most 250,000 characters at a time; total history depends on browser storage capacity.
 - Chats and results stay in this browser's local database. **清空聊天，重新开始** (Clear chat and start over) deletes them. Other browsers or URL ports do not share the same data; clearing browser data also removes it.
-- Original messages needed for analysis are sent to TypeSafe using your account's credits. Local storage does not mean offline inference.
+- Original messages needed for analysis are sent to your selected platform and its model provider using your account's credits. Local storage does not mean offline inference.
 - If analysis fails, check the terminal, API key and account credits. Never commit `.env` or private conversations.
 
 ## Development
 
-React + TypeScript + Vite + Express, using the TypeSafe SDK with `jev-1.13.0`.
+React + TypeScript + Vite + Express. The same emotion, intention and scoring rules run through three endpoints:
+
+| Provider | API | Model |
+| --- | --- | --- |
+| TypeSafe | [System One](https://docs.typesafe.ai/api) | `jev-1.13.0` |
+| Vercel | [TypeSafe-compatible API](https://vercel.com/docs/ai-gateway/sdks-and-apis/typesafe) | `typesafe-ai/jev` |
+| OpenRouter | [Decisions (Alpha)](https://openrouter.ai/docs/api/api-reference/alphadecisions/submit-a-decisions-questions-and-answers-request) | `typesafe/jev-1.13` |
+
+Native Jev probabilities and confidence are preserved; Chat Completions is not used to simulate scores. Vercel manages its model alias, so the underlying version may change. Results are not guaranteed to be identical across providers. Offline tests cover all three adapters and the analysis pipeline. On 2026-09-22, a real Vercel account passed checks for all three question types, the affection overview, emotions, intentions and reply grades. OpenRouter has not yet been verified with a real account. Run `npm run check:api` to verify your own access.
 
 ```sh
 npm run dev        # http://127.0.0.1:5178/
 npm test           # local tests; no model calls
-npm run check:live # real model check; uses your API credits
+npm run check:api  # verify the selected provider; uses a small amount of API credits
+npm run check:live # full analysis with sample chat; uses the selected provider's credits
 ```
 
 ## License
