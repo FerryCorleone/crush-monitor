@@ -135,3 +135,14 @@ npm run check:live # full analysis with sample chat; uses the selected provider'
 ## License
 
 [MIT](LICENSE). Not affiliated with WeChat, Tencent, TypeSafe or any messaging platform mentioned here.
+
+## Community projects
+
+Community members have brought Crush Monitor to phones and desktops, with a few twists of their own. More projects can be added here over time:
+
+| Project | What's different |
+| --- | --- |
+| [FQKH / Crush-](https://github.com/FQKH/Crush-) | Android APK with a DeepSeek analysis option. The repository currently provides an APK but not the full source code. |
+| [RYANFFY / crush-monitor-pack](https://github.com/RYANFFY/crush-monitor-pack) | Windows and macOS installers that save you from running the setup commands yourself. |
+
+These are unofficial projects maintained independently by community members. Check each repository before downloading, installing or entering an API key; this project does not guarantee their security or functionality.

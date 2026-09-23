@@ -133,3 +133,14 @@ npm run check:live # 用示例聊天检查完整分析，使用所选平台的 A
 ## License
 
 [MIT](LICENSE)。本项目与微信、腾讯及 TypeSafe 无隶属关系。
+
+## 社区作品
+
+有人已经把好感监控器搬上了手机和桌面，也加了自己的新玩法。欢迎来看看，后续有意思的版本也可以继续加进来：
+
+| 项目 | 做了什么 |
+| --- | --- |
+| [FQKH / Crush-](https://github.com/FQKH/Crush-) | 安卓 APK 版，增加了 DeepSeek 分析选项；仓库目前提供安装包，未提供完整源码。 |
+| [RYANFFY / crush-monitor-pack](https://github.com/RYANFFY/crush-monitor-pack) | Windows、macOS 安装包，省去手动运行命令的步骤。 |
+
+以上均为社区作者独立维护的非官方项目。下载、安装或填写 API Key 前，请自行核对各仓库说明；本项目不对其安全性和运行效果作保证。
