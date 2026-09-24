@@ -40,6 +40,7 @@ import {
 } from "../shared/types";
 import { exampleText } from "../shared/fixtures";
 import { useAnalysis } from "./useAnalysis";
+import { currentAction } from "../shared/action";
 
 function Modal({
   title,
@@ -224,6 +225,14 @@ export default function App() {
     ov = a.overview,
     value = ov?.affinity.value,
     quality = meanQuality(messages, a.lines);
+  const actionOverview = currentAction(ov, messages, a.overviewFresh);
+  const actionLabel = actionOverview
+    ? ACTIONS[actionOverview.action]?.label
+    : busy
+      ? "正在更新…"
+      : messages.length
+        ? "建议待更新"
+        : "等你导入聊天";
   const last = a.trend.at(-1),
     previous = a.trend.at(-2);
   const delta =
@@ -541,7 +550,7 @@ export default function App() {
               onClick={() => setDetail("action")}
             >
               <span>下一步</span>
-              <strong>{ov ? ACTIONS[ov.action]?.label : "等你导入聊天"}</strong>
+              <strong>{actionLabel}</strong>
               <ArrowRight size={14} />
             </button>
           </div>
@@ -799,12 +808,29 @@ export default function App() {
             </>
           ) : detail === "action" ? (
             <>
-              <h3>{ov ? ACTIONS[ov.action]?.label : "等待聊天"}</h3>
-              <p>{ov ? ACTIONS[ov.action]?.detail : "导入后生成建议。"}</p>
-              {ov?.actionEvidenceId && (
+              <h3>{actionLabel}</h3>
+              <p>
+                {actionOverview
+                  ? ACTIONS[actionOverview.action]?.detail
+                  : busy
+                    ? "正在根据最新聊天更新建议。"
+                    : messages.length
+                      ? "最新聊天的建议尚未更新，请重新分析。"
+                      : "导入后生成建议。"}
+              </p>
+              {actionOverview?.actionEvidenceId && (
                 <blockquote>
-                  {messages.find((m) => m.id === ov.actionEvidenceId)?.text}
+                  {
+                    messages.find(
+                      (m) => m.id === actionOverview.actionEvidenceId,
+                    )?.text
+                  }
                 </blockquote>
+              )}
+              {!actionOverview && !busy && !!messages.length && (
+                <button onClick={() => a.run(messages, relation)}>
+                  重新分析
+                </button>
               )}
             </>
           ) : detail === "performance" ? (

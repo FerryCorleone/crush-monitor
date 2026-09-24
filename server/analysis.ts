@@ -157,6 +157,7 @@ export function buildRequest(input: AnalysisRequest) {
     messages: messages.map(compact),
     ...(input.task === "overview"
       ? {
+          conversationEnd: messages.at(-1) ? compact(messages.at(-1)!) : null,
           historicalEvidence: (input.memory ?? []).map((e) => ({
             sourceId: ids.get(e.id)!,
             eventCandidate: EVENT_KINDS[e.kind],
@@ -230,7 +231,9 @@ export function buildRequest(input: AnalysisRequest) {
         },
       );
     questions.action = choice(
-      ask("在当前对话结束处，self 下一步最适合做什么？"),
+      ask(
+        "综合当前可见对话、近期氛围、关系状态和历史原话，self 现在下一步最适合做什么？conversationEnd 标明本次分析覆盖到的位置，不要求只针对最后一句话给建议。历史里仍相关的事情可以作为建议依据，但已被回复、解决、取消或新信息改变的事情，不能当成仍待回应的旧状态。",
+      ),
       actions,
     );
     questions.boundary = noul(
@@ -240,7 +243,7 @@ export function buildRequest(input: AnalysisRequest) {
     );
     questions.pending = noul(
       ask(
-        "最后一条是 self 发出的，且尚未得到 other 回应、适合先等对方接球吗？最后一条若是 other，答案为否。",
+        "conversationEnd 是 self 发出的，且尚未得到 other 回应、适合先等对方接球吗？conversationEnd.sender 若是 other，答案为否；不要把历史里已收到回应的 self 消息算作等待。",
       ),
     );
     const candidates = Object.fromEntries([
@@ -255,7 +258,9 @@ export function buildRequest(input: AnalysisRequest) {
       candidates,
     );
     questions.actionEvidence = choice(
-      ask("哪条消息最直接说明 self 下一步的交流需求？"),
+      ask(
+        "综合当前聊天氛围、关系和事情的最新进展，哪条原话最直接支持 self 现在的下一步交流需求？可以选择近期或历史消息，但需要确认它仍适用于当前状态；不要因为旧消息曾经重要就忽略后续回答、解决、取消或变化。没有直接证据就选 none。",
+      ),
       candidates,
     );
   } else {
@@ -401,6 +406,7 @@ export async function analyze(
       ...actionResult(a.action, a.boundary, a.pending),
       evidenceId: evidence(a.evidence),
       actionEvidenceId: evidence(a.actionEvidence),
+      actionAnchorId: input.messages.at(-1)!.id,
     };
   } else
     output.lines = input.targetIds

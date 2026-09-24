@@ -45,6 +45,7 @@ export type Overview = {
   alternative?: string;
   evidenceId: string | null;
   actionEvidenceId: string | null;
+  actionAnchorId?: string;
 };
 export type Snapshot = {
   revision: number;
