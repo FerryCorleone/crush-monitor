@@ -142,5 +142,6 @@ npm run check:live # 用示例聊天检查完整分析，使用所选平台的 A
 | --- | --- |
 | [FQKH / Crush-](https://github.com/FQKH/Crush-) | 安卓 APK 版，增加了 DeepSeek 分析选项；仓库目前提供安装包，未提供完整源码。 |
 | [RYANFFY / crush-monitor-pack](https://github.com/RYANFFY/crush-monitor-pack) | Windows、macOS 安装包，省去手动运行命令的步骤。 |
+| [Reverie0123 / crush-monitor-universal](https://github.com/Reverie0123/crush-monitor-universal) | 通用模型版，支持 DeepSeek / OpenAI 兼容接口，也可切回 Jev；增加判断理由、回复改写和分析报告导出。 |
 
 以上均为社区作者独立维护的非官方项目。下载、安装或填写 API Key 前，请自行核对各仓库说明；本项目不对其安全性和运行效果作保证。

@@ -144,5 +144,6 @@ Community members have brought Crush Monitor to phones and desktops, with a few 
 | --- | --- |
 | [FQKH / Crush-](https://github.com/FQKH/Crush-) | Android APK with a DeepSeek analysis option. The repository currently provides an APK but not the full source code. |
 | [RYANFFY / crush-monitor-pack](https://github.com/RYANFFY/crush-monitor-pack) | Windows and macOS installers that save you from running the setup commands yourself. |
+| [Reverie0123 / crush-monitor-universal](https://github.com/Reverie0123/crush-monitor-universal) | Supports DeepSeek and OpenAI-compatible APIs, with an option to switch back to Jev; adds explanations, reply rewrites and analysis report export. |
 
 These are unofficial projects maintained independently by community members. Check each repository before downloading, installing or entering an API key; this project does not guarantee their security or functionality.
