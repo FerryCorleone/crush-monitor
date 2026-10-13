@@ -128,6 +128,7 @@ export function ModelSettings({
     setFilter("");
     if (
       form.protocol === "jev" ||
+      form.protocol === "decisions" ||
       (!form.apiKey.trim() && !sameKey) ||
       !form.baseUrl
     )
@@ -228,7 +229,7 @@ export function ModelSettings({
             </label>
           </>
         )}
-        {form.protocol !== "jev" && (
+        {form.protocol !== "jev" && form.protocol !== "decisions" && (
           <>
             <div className="field">
               <span className="field-heading">

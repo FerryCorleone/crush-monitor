@@ -25,14 +25,23 @@ export type LlmConfig = {
   protocol: "openai" | "anthropic";
   jsonMode: boolean;
 };
-export type ActiveConfig = ProviderConfig | LlmConfig;
+export type DecisionsConfig = {
+  engine: "decisions";
+  provider: "openai-decisions";
+  name: string;
+  endpoint: string;
+  model: "gpt-6-luna";
+  apiKey: string;
+  protocol: "decisions";
+};
+export type ActiveConfig = ProviderConfig | LlmConfig | DecisionsConfig;
 export const modelConfigPath = resolve(
   process.env.CRUSH_CONFIG_PATH || ".runtime/model.json",
 );
 const schema = z
   .object({
     preset: z.string().max(80),
-    protocol: z.enum(["openai", "anthropic", "jev"]),
+    protocol: z.enum(["openai", "anthropic", "jev", "decisions"]),
     baseUrl: z.string().trim().max(500),
     model: z.string().trim().max(200),
     apiKey: z.string().trim().max(4096),
@@ -61,6 +70,13 @@ export function parseSettings(input: unknown): ModelSettings {
       JEV_API_KEY: s.apiKey,
     });
     return { ...s, baseUrl: "", model: config.model };
+  }
+  if (s.protocol === "decisions") {
+    if (s.preset !== "openai-decisions" || s.baseUrl !== preset.baseUrl)
+      throw new ConfigurationError(
+        "Decisions 仅支持 OpenAI 官方地址，请选择对应入口。",
+      );
+    return { ...s, model: "gpt-6-luna", jsonMode: false };
   }
   if (!s.model || /[\s\x00-\x1f]/.test(s.model))
     throw new ConfigurationError("请填写平台提供的模型 ID，不是模型昵称。");
@@ -97,6 +113,16 @@ export function settingsConfig(s: ModelSettings): ActiveConfig {
   s = parseSettings(s);
   if (s.protocol === "jev")
     return getProviderConfig({ JEV_PROVIDER: s.preset, JEV_API_KEY: s.apiKey });
+  if (s.protocol === "decisions")
+    return {
+      engine: "decisions",
+      provider: "openai-decisions",
+      name: "OpenAI Decisions",
+      endpoint: "https://api.openai.com/v1/decisions",
+      model: "gpt-6-luna",
+      apiKey: s.apiKey,
+      protocol: "decisions",
+    };
   return {
     engine: "llm",
     provider: s.preset,
@@ -132,7 +158,11 @@ export function configFingerprint(config: ActiveConfig): string {
         config.endpoint,
         config.model,
         "protocol" in config ? config.protocol : "jev",
-        "engine" in config ? "llm-adapter-v2" : "llm-adapter-v1",
+        "engine" in config
+          ? config.engine === "decisions"
+            ? "decisions-adapter-v1"
+            : "llm-adapter-v2"
+          : "llm-adapter-v1",
       ]),
     )
     .digest("hex")

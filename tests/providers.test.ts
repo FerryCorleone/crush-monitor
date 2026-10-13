@@ -18,6 +18,7 @@ import {
 import { updateConfiguration, saveConfiguration } from "../scripts/setup";
 import { analyze, buildRequest } from "../server/analysis";
 import type { AnalysisRequest } from "../shared/types";
+import { parseSettings, settingsConfig } from "../server/model-config";
 
 const payload = {
   state: { message: "Synthetic connection test" },
@@ -129,7 +130,7 @@ test("拼错平台、空 Key、占位符和粘贴整行配置提前报错；健�
   );
 });
 
-for (const provider of ["typesafe", "vercel", "openrouter"] as const) {
+for (const provider of Object.keys(PROVIDERS) as (keyof typeof PROVIDERS)[]) {
   test(`${provider} 路由、认证、三种判断和概率保真`, async () => {
     const config = getProviderConfig({
       JEV_PROVIDER: provider,
@@ -156,6 +157,49 @@ for (const provider of ["typesafe", "vercel", "openrouter"] as const) {
     assert.equal(calls, 1);
   });
 }
+
+test("OpenCode 网页与环境配置锁定免费 Jev；拒绝借用其他平台 Key", async () => {
+  assert.throws(
+    () =>
+      getProviderConfig({
+        JEV_PROVIDER: "opencode",
+        TYPESAFE_API_KEY: "other-platform-key",
+      }),
+    /API Key/,
+  );
+  const config = getProviderConfig({
+    JEV_PROVIDER: "opencode",
+    OPENCODE_API_KEY: "test-only-key",
+  });
+  assert.equal(config.model, "jev-1.13-free");
+  const settings = parseSettings({
+    preset: "opencode",
+    protocol: "jev",
+    baseUrl: "https://untrusted.example",
+    model: "jev-1.13",
+    apiKey: "test-only-key",
+    jsonMode: true,
+  });
+  assert.equal(settings.model, "jev-1.13-free");
+  assert.equal(settings.baseUrl, "");
+  assert.deepEqual(settingsConfig(settings), config);
+  let calls = 0;
+  const mock: typeof fetch = async (url, options) => {
+    calls++;
+    assert.equal(url, "https://opencode.ai/inference/v1/systemone");
+    assert.equal(JSON.parse(String(options?.body)).model, "jev-1.13-free");
+    return new Response("private-upstream-body test-only-key", { status: 451 });
+  };
+  await assert.rejects(
+    evaluate({ ...payload, model: "jev-1.13" }, undefined, config, mock),
+    (e: any) =>
+      e instanceof ProviderError &&
+      e.status === 451 &&
+      /地区/.test(e.message) &&
+      !e.message.includes("test-only-key"),
+  );
+  assert.equal(calls, 1, "地区错误不重试，也不切换付费型号");
+});
 
 test("网关缺少确定度、概率、答案或返回错误分类时拒绝评分", () => {
   const changes = [
@@ -330,7 +374,7 @@ test("配置更新保留端口、注释和其他变量；重复运行不会重�
   }
 });
 
-test("三平台贯通总览、对方情绪意图、我方评级，使用同一评分规则", async (t) => {
+test("各 Jev 平台贯通总览、对方情绪意图、我方评级，使用同一评分规则", async (t) => {
   const originalFetch = globalThis.fetch;
   const previous = {
     provider: process.env.JEV_PROVIDER,
@@ -396,14 +440,17 @@ test("三平台贯通总览、对方情绪意图、我方评级，使用同一�
     };
     assert.ok(Object.keys(buildRequest(request).questions).length > 0);
     const results = [];
-    for (const provider of ["typesafe", "vercel", "openrouter"]) {
+    for (const provider of Object.keys(PROVIDERS)) {
       process.env.JEV_PROVIDER = provider;
       process.env.JEV_API_KEY = "test-only-key";
-      const { model, latencyMs, ...result } = await analyze(request, undefined, getProviderConfig());
+      const { model, latencyMs, ...result } = await analyze(
+        request,
+        undefined,
+        getProviderConfig(),
+      );
       assert.ok(model);
       results.push(result);
     }
-    assert.deepEqual(results[0], results[1]);
-    assert.deepEqual(results[0], results[2]);
+    for (const result of results.slice(1)) assert.deepEqual(results[0], result);
   }
 });

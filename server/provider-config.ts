@@ -20,6 +20,13 @@ export const PROVIDERS = {
     keyEnv: "OPENROUTER_API_KEY",
     keyUrl: "https://openrouter.ai/settings/keys",
   },
+  opencode: {
+    name: "OpenCode Jev（限时免费）",
+    endpoint: "https://opencode.ai/inference/v1/systemone",
+    model: "jev-1.13-free",
+    keyEnv: "OPENCODE_API_KEY",
+    keyUrl: "https://opencode.ai/console/",
+  },
 } as const;
 export type Provider = keyof typeof PROVIDERS;
 export type ProviderConfig = (typeof PROVIDERS)[Provider] & {
@@ -37,7 +44,7 @@ export function getProviderConfig(
   const selected = env.JEV_PROVIDER?.trim().toLowerCase() || "typesafe";
   if (!Object.hasOwn(PROVIDERS, selected))
     throw new ConfigurationError(
-      "平台只支持 typesafe、vercel、openrouter。请运行 npm run setup。 / Unsupported provider.",
+      `平台只支持 ${Object.keys(PROVIDERS).join("、")}。请运行 npm run setup。 / Unsupported provider.`,
     );
   const provider = selected as Provider;
   const preset = PROVIDERS[provider];

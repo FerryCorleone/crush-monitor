@@ -3,6 +3,11 @@ import { setTimeout as delay } from "node:timers/promises";
 import { z } from "zod";
 import { activeConfig, type ActiveConfig } from "./model-config";
 import { evaluateLlm } from "./llm";
+import {
+  compileDecisionsRequest,
+  decodeDecisions,
+  planDecisionsBatches,
+} from "./openai-decisions";
 
 const probability = z.number().min(0).max(1);
 const distribution = z.record(probability);
@@ -54,6 +59,7 @@ export function httpError(status: number, name: string) {
     413: "聊天过长，请缩小范围 / Request too large",
     422: "无法处理当前输入，请缩小聊天范围 / Invalid input",
     429: "请求受限，请稍后重试并检查账号限额 / Rate limit reached",
+    451: "该模型在当前网络或地区不可用，请检查平台支持地区或换用其他平台 / Model unavailable in this region or network",
   };
   return new ProviderError(
     status,
@@ -100,8 +106,68 @@ export async function evaluate(
   config: ActiveConfig = activeConfig(),
   fetchImpl: typeof fetch = fetch,
 ) {
-  if ("engine" in config)
+  if ("engine" in config && config.engine === "llm")
     return evaluateLlm(payload, config, signal, fetchImpl);
+  if ("engine" in config && config.engine === "decisions") {
+    const deadline = AbortSignal.timeout(120000);
+    const controller = new AbortController();
+    const requestSignal = AbortSignal.any([
+      deadline,
+      controller.signal,
+      ...(signal ? [signal] : []),
+    ]);
+    const batches = planDecisionsBatches(payload.questions);
+    const answers: Record<string, unknown> = {};
+    const usage = { input_tokens: 0, output_tokens: 0 };
+    let model = config.model as string;
+    const worker = async () => {
+      while (batches.length) {
+        requestSignal.throwIfAborted();
+        const questions = batches.shift()!;
+        const raw = await requestProvider(
+          config,
+          compileDecisionsRequest({ ...payload, questions }),
+          requestSignal,
+          fetchImpl,
+        );
+        const result = decodeDecisions(raw, questions);
+        Object.assign(answers, result.answers);
+        usage.input_tokens += result.usage.input_tokens;
+        usage.output_tokens += result.usage.output_tokens;
+        model = result.model;
+      }
+    };
+    try {
+      await Promise.all(
+        [worker(), worker()].map((p) =>
+          p.catch((error) => {
+            controller.abort();
+            throw error;
+          }),
+        ),
+      );
+      return validateResult({ model, answers, usage }, payload.questions);
+    } finally {
+      controller.abort();
+    }
+  }
+  return validateResult(
+    await requestProvider(
+      config,
+      { ...payload, model: config.model },
+      signal,
+      fetchImpl,
+    ),
+    payload.questions,
+  );
+}
+
+async function requestProvider(
+  config: ActiveConfig,
+  body: unknown,
+  signal: AbortSignal | undefined,
+  fetchImpl: typeof fetch,
+) {
   const deadline = AbortSignal.timeout(45000);
   const requestSignal = signal ? AbortSignal.any([signal, deadline]) : deadline;
   for (let attempt = 0; ; attempt++) {
@@ -113,7 +179,7 @@ export async function evaluate(
         Authorization: `Bearer ${config.apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ ...payload, model: config.model }),
+      body: JSON.stringify(body),
       signal: AbortSignal.any([requestSignal, AbortSignal.timeout(30000)]),
     });
     if (!response.ok) {
@@ -158,7 +224,7 @@ export async function evaluate(
         `${config.name} 返回格式异常，请重试 / Invalid response`,
       );
     }
-    return validateResult(data, payload.questions);
+    return data;
   }
 }
 

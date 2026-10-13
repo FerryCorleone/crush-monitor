@@ -49,6 +49,14 @@ export const MODEL_PRESETS = [
     keyUrl: "https://cloud.siliconflow.cn/account/ak",
   },
   {
+    id: "openai-decisions",
+    name: "OpenAI Decisions · GPT-6 Luna（测试版）",
+    protocol: "decisions",
+    baseUrl: "https://api.openai.com/v1",
+    model: "gpt-6-luna",
+    keyUrl: "https://platform.openai.com/api-keys",
+  },
+  {
     id: "openai",
     name: "OpenAI",
     protocol: "openai",
@@ -120,10 +128,18 @@ export const MODEL_PRESETS = [
     model: "typesafe/jev-1.13",
     keyUrl: "https://openrouter.ai/settings/keys",
   },
+  {
+    id: "opencode",
+    name: "Jev · OpenCode（限时免费）",
+    protocol: "jev",
+    baseUrl: "",
+    model: "jev-1.13-free",
+    keyUrl: "https://opencode.ai/console/",
+  },
 ] as const;
 export type ModelSettings = {
   preset: string;
-  protocol: "openai" | "anthropic" | "jev";
+  protocol: "openai" | "anthropic" | "jev" | "decisions";
   baseUrl: string;
   model: string;
   apiKey: string;

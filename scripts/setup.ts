@@ -100,6 +100,7 @@ async function main() {
       ),
     );
     const ids = Object.keys(PROVIDERS) as Provider[];
+    const choices = ids.map((_, i) => i + 1).join(" / ");
     ids.forEach((id, i) => console.log(`  ${i + 1}. ${PROVIDERS[id].name}`));
     if (current)
       console.log(
@@ -111,14 +112,15 @@ async function main() {
     let provider: Provider | undefined;
     while (!provider) {
       const selection = await ask(
-        say("选择 1 / 2 / 3：", "Select 1 / 2 / 3: "),
+        say(`选择 ${choices}：`, `Select ${choices}: `),
       );
       provider = !selection
         ? current?.provider
-        : /^[123]$/.test(selection)
+        : /^\d+$/.test(selection)
           ? ids[Number(selection) - 1]
           : undefined;
-      if (!provider) console.log(say("请输入 1、2 或 3。", "Enter 1, 2 or 3."));
+      if (!provider)
+        console.log(say(`请输入 ${choices}。`, `Enter ${choices}.`));
     }
     console.log(`${PROVIDERS[provider].name}: ${PROVIDERS[provider].keyUrl}`);
     if (provider === "vercel")

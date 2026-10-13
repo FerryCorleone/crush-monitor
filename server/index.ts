@@ -45,7 +45,12 @@ app.get("/api/health", (_req, res) => {
   const s = publicSettings();
   res.json({
     configured: s.configured,
-    engine: s.protocol === "jev" ? "jev" : "llm",
+    engine:
+      s.protocol === "jev"
+        ? "jev"
+        : s.protocol === "decisions"
+          ? "decisions"
+          : "llm",
     provider: s.preset,
     model: s.model,
     fingerprint: s.fingerprint,

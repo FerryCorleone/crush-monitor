@@ -2,7 +2,7 @@
 
 简体中文 · [English](README.en.md)
 
-一个分析你和 Crush 或对象聊天的小工具，支持 Jev 和常见文本大模型。帮你读懂一点对方的情绪和想法，也看看自己的回复哪里没表达好、可以怎么调整。
+一个分析你和 Crush 或对象聊天的小工具，支持 Jev、OpenAI Decisions（测试版）和常见文本大模型。帮你读懂一点对方的情绪和想法，也看看自己的回复哪里没表达好、可以怎么调整。
 
 不过，AI 不知道你们现实中怎么相处，也不了解聊天之外的故事。分析结果就当图一乐、做个参考。怎么理解对方、怎么表达自己，最后还是得靠自己的感受和真诚。
 
@@ -32,12 +32,32 @@ Jev 是 TypeSafe 推出的结构化判断模型，直接返回分类、评分和
 | 平台 | 创建 Key | 配置时选择 | 免费额度 |
 | --- | --- | --- | --- |
 | TypeSafe 官方 | 登录 [TypeSafe 控制台](https://console.typesafe.ai/)，在 API Keys 中创建并复制 Key | Jev · TypeSafe | **新用户目前不再赠送免费额度**。此前的 $5 活动已停止，恢复时间未定（[官方公告](https://x.com/typesafeai/status/2104337824292220981)） |
+| OpenCode Console | [邮箱注册并验证](https://opencode.ai/console/)，在 Settings → Service accounts 创建 Key，Models 权限选 Request | Jev · OpenCode（限时免费） | **限时免费** `jev-1.13-free`；本次新账号未绑卡、未充值调用成功，不自动切换付费型号（[官方说明](https://opencode.ai/v2/docs/console/models/)） |
 | Vercel AI Gateway | 注册或登录 Vercel，进入 [AI Gateway → API Keys](https://vercel.com/d?to=/%5Bteam%5D/~/ai-gateway/api-keys)，点击 **Create key**。需要的是 AI Gateway Key，不是账户 Access Token | Jev · Vercel AI Gateway | 平台免费档 **每月 $5，但当前不能用于 Jev**。Jev 标记为不支持免费额度，需购买额度（[型号列表](https://vercel.com/ai-gateway/models?q=jev)、[规则](https://vercel.com/docs/ai-gateway/pricing)） |
 | OpenRouter | 注册或登录 [OpenRouter](https://openrouter.ai/settings/keys)，在 Keys 页面点击 **Create Key**，创建并复制 Key | Jev · OpenRouter | 官方称有少量新用户试用额度，但未明确金额及是否可用于 Jev。[Jev 为付费模型](https://openrouter.ai/typesafe/jev-1.13/)，没有可用余额需充值；不要把免费模型额度当成 Jev 额度（[说明](https://openrouter.ai/support/)） |
 
+OpenCode 实测日期：**2026-10-13**。未绑卡、未充值完成了聊天分析；经代理调用正常，本次大陆直连返回 HTTP 451。它暂不能作为国内直连方案推荐；免费活动可能结束，不会自动切换付费版。
+
 Vercel 免费档需完成信用卡验证（[官方说明](https://community.vercel.com/t/free-credits-temporarily-have-restricted-access-due-to-abuse/21461/8)）；购买额度后转为付费档，不再享有每月 $5 赠额。
 
-核对日期：**2026-10-04**。平台赠额不等于 Jev 免费；使用前确认账户余额和型号权限，后续以官方政策及控制台为准。
+其他平台额度核对日期：**2026-10-04**。平台赠额不等于 Jev 免费；使用前确认账户余额和型号权限，后续以官方政策及控制台为准。
+
+### 试验性接入：OpenAI Decisions
+
+在 [OpenAI 控制台](https://platform.openai.com/api-keys)创建 API Key，网页选择「OpenAI Decisions · GPT-6 Luna（测试版）」。型号和地址已预设，只需填 Key；原有情绪、意图、好感度、回复评级和下一步功能保持不变。
+
+它通过[专用判断接口](https://developers.openai.com/api/docs/guides/decisions)直接返回概率、分类和评分，不生成长篇回答。目前处于公开测试，标准价格为每百万输入 Token $0.10，无输出 Token 费用；其他计费条件以官方为准。ChatGPT / Codex 订阅不包含 API 额度。
+
+**本项目目前仅适配 OpenAI 官方 Decisions 接口，已通过本地与模拟接口测试，尚未完成真实调用验证。** 使用前先检测连接；账号权限、地区和额度仍需确认，暂不承诺速度或效果优于 Jev。
+
+<details>
+<summary>其他平台和免费额度</summary>
+
+[Vercel](https://vercel.com/docs/ai-gateway/sdks-and-apis/openai-decisions) 与 [OpenRouter](https://openrouter.ai/openai/gpt-6-luna-decisions)也提供 GPT-6 Luna Decisions，但它们的型号、认证或请求格式不同，不能把 Key 直接填进本项目的 OpenAI 官方入口。
+
+截至 **2026-10-13**，实测 Vercel 每月 $5 免费额度不能用于该型号，请求返回 403；OpenRouter 的新用户赠额是否可用尚未验证。该型号暂无实测通过的免费方案，未验证的独立转接平台不列为推荐。
+
+</details>
 
 ### 备选：LLM 文本大模型
 
@@ -88,14 +108,14 @@ Key 保存在本机服务目录的 `.runtime/model.json`，不写入浏览器存
 
 </details>
 
-401 检查 Key，402 检查额度，403 检查模型权限，404 检查模型 ID / 地址，429 等待限流恢复。如果接口不支持 `response_format`，在「连接选项」中关闭 JSON 模式再检测；返回结果仍会严格校验。
+401 检查 Key，402 检查额度，403 检查模型权限，404 检查模型 ID / 地址，429 等待限流恢复，451 检查平台地区与网络支持。如果接口不支持 `response_format`，在「连接选项」中关闭 JSON 模式再检测；返回结果仍会严格校验。
 
 ### 让 AI Agent 帮你安装
 
 可以把仓库链接发给 Codex、Claude Code 等，让它按「本地运行」完成安装。给 Agent 的简短指引：
 
 1. 检查 Node.js 版本，安装依赖、构建并启动服务；没有 Key 也可以先把网页打开，不必等待用户申请完。
-2. 用户未指定模型时，先推荐 Jev 并给出上面的申请链接；获取不便时再介绍 LLM 备选，尊重用户已有的 Key 和选择。
+2. 用户未指定模型时，先推荐 Jev 并给出上面的申请链接；获取不便时再介绍 LLM 备选，尊重用户已有的 Key 和选择。说明限时免费、网络限制及未实测入口，不承诺赠额或分析效果。
 3. 引导用户在本机「模型设置」中填写 Key、选择型号并检测，不要求把 Key 发到对话里，也不必手改配置文件。失败时按页面提示检查权限、额度或型号，不反复盲目重试。
 4. 交付时给出实际访问地址，说明如何下次启动、终端按 `Ctrl+C` 停止；分清「网页已启动」「连接检测通过」「聊天分析已验证」，没有验证的不要说已完成。
 
@@ -141,15 +161,19 @@ iMessage 等软件复制后若只有正文，没有发送人，请先补上 `Ale
 
 ## 开发
 
-React + TypeScript + Vite + Express。所有模型共用同一套情绪、意图、好感度、回复评级、下一步规则。支持 OpenAI Chat Completions、Anthropic Messages，以及原来的 Jev 接口：
+React + TypeScript + Vite + Express。所有模型共用同一套情绪、意图、好感度、回复评级、下一步规则。支持 OpenAI Chat Completions、Anthropic Messages、OpenAI Decisions，以及原来的 Jev 接口：
 
 | 平台 | 接口 | 模型 |
 | --- | --- | --- |
 | TypeSafe | [System One](https://docs.typesafe.ai/api) | `jev-1.13.0` |
 | Vercel | [TypeSafe 兼容接口](https://vercel.com/docs/ai-gateway/sdks-and-apis/typesafe) | `typesafe-ai/jev` |
 | OpenRouter | [Decisions（Alpha）](https://openrouter.ai/docs/api/api-reference/alphadecisions/submit-a-decisions-questions-and-answers-request) | `typesafe/jev-1.13` |
+| OpenCode | [System One](https://opencode.ai/v2/docs/console/models/#jev) | `jev-1.13-free`（限时免费） |
+| OpenAI | [Decisions（公开测试）](https://developers.openai.com/api/docs/guides/decisions) | `gpt-6-luna`（仅模拟接口测试） |
 
 Jev 保留原始概率和确定度。LLM 按相同问题和分类返回相对权重，代码归一化为分布并计算评分与分布集中度；LLM 百分比是模型估计，不是经校准的真实心理概率，也不能与 Jev 的结果直接当作同尺度测量。没有新增回复生成、改写或报告功能。
+
+OpenAI Decisions 使用独立接口，把原有判断题映射成 predicate / choice / score，保留返回的原始概率、确定度和小数评分。按问题数及候选数量分批、最多并行两批，我方回复隔离后续聊天；拒答或不完整结果会报错，不补造分数。它与 Jev 的分数也不能直接视为同尺度测量。
 
 LLM 使用独立的请求编排：共享分类定义、缩短输出编号、并行分析，逐句完成后只计算一次总览。DeepSeek 等已确认支持的型号会关闭深度思考；不支持关闭的型号沿用平台设置。我方回复仍隔离之后发生的聊天，避免拿后续结果倒推当时的表达质量。
 

@@ -29,7 +29,9 @@ test("local HTTP settings: CSRF/host guards, successful verification, no secret 
         id,
         q.type === "noul"
           ? 0.8
-          : Object.keys(input.definitions[q.criteria]).map((_, i) => (i === 0 ? 1 : 0)),
+          : Object.keys(input.definitions[q.criteria]).map((_, i) =>
+              i === 0 ? 1 : 0,
+            ),
       ]),
     );
     res.setHeader("Content-Type", "application/json");
@@ -126,9 +128,30 @@ test("local HTTP settings: CSRF/host guards, successful verification, no secret 
       });
     assert.equal((await post("save", body, "bad-token")).status, 403);
     assert.equal(existsSync(file), false);
-    assert.deepEqual((await (await post("models", { ...body, model: "wrong model id with spaces" })).json()).models, [
-      "test-model",
-    ]);
+    assert.deepEqual(
+      (
+        await (
+          await post("models", { ...body, model: "wrong model id with spaces" })
+        ).json()
+      ).models,
+      ["test-model"],
+    );
+    assert.deepEqual(
+      (
+        await (
+          await post("models", {
+            preset: "openai-decisions",
+            protocol: "decisions",
+            baseUrl: "https://api.openai.com/v1",
+            model: "wrong model id",
+            apiKey: "test-only-key",
+            jsonMode: false,
+          })
+        ).json()
+      ).models,
+      ["gpt-6-luna"],
+    );
+    assert.equal(existsSync(file), false);
     const saved = await post("save", body);
     assert.equal(saved.status, 200);
     const data = await saved.json();

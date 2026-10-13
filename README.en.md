@@ -2,7 +2,7 @@
 
 [简体中文](README.md) · English
 
-A tool for looking at conversations with your crush or partner, using Jev or a text LLM. It helps you make sense of emotions and intentions, and spot replies you could have worded better.
+A tool for looking at conversations with your crush or partner, using Jev, OpenAI Decisions (experimental), or a text LLM. It helps you make sense of emotions and intentions, and spot replies you could have worded better.
 
 AI doesn't know your relationship or what happens outside the chat. Take the results lightly—as another perspective. Your own judgment and an honest conversation still matter more.
 
@@ -34,12 +34,32 @@ Create a key with one of these providers and select its **Jev** entry in the app
 | Provider | Create a key | Setup choice | Free credits |
 | --- | --- | --- | --- |
 | TypeSafe | Sign in to the [TypeSafe console](https://console.typesafe.ai/), create a key under API Keys and copy it | Jev · TypeSafe | **New signups no longer receive free credits.** The former $5 offer has stopped, with no announced return date ([official announcement](https://x.com/typesafeai/status/2104337824292220981)) |
+| OpenCode Console | [Sign up and verify your email](https://opencode.ai/console/); create a key in Settings → Service accounts with Models access set to Request | Jev · OpenCode（限时免费） | **Limited-time free** `jev-1.13-free`. Verified with a new account, no payment method or top-up; no automatic paid fallback ([official docs](https://opencode.ai/v2/docs/console/models/)) |
 | Vercel AI Gateway | Sign in to Vercel, open [AI Gateway → API Keys](https://vercel.com/d?to=/%5Bteam%5D/~/ai-gateway/api-keys) and select **Create key**. Use an AI Gateway key, not a Vercel account Access Token | Jev · Vercel AI Gateway | The platform offers **$5/month, but Jev is currently ineligible**. Its catalog entry does not accept free credits; purchased credits are required ([model list](https://vercel.com/ai-gateway/models?q=jev), [rules](https://vercel.com/docs/ai-gateway/pricing)) |
 | OpenRouter | Sign in to [OpenRouter Keys](https://openrouter.ai/settings/keys), select **Create Key** and copy the new key | Jev · OpenRouter | The FAQ mentions a small new-user allowance, but specifies neither an amount nor Jev eligibility. [Jev is paid](https://openrouter.ai/typesafe/jev-1.13/); top up if you have no usable balance. Free-model quotas are not Jev credits ([details](https://openrouter.ai/support/)) |
 
+OpenCode verified on **2026-10-13**: full chat analysis completed without a payment method or top-up. Requests worked through a proxy; mainland-direct inference returned HTTP 451 in our test. It is not currently a verified mainland-direct option. The promotion may end; the app never switches automatically to the paid model.
+
 Vercel requires credit-card verification for its free tier ([official guidance](https://community.vercel.com/t/free-credits-temporarily-have-restricted-access-due-to-abuse/21461/8)). Purchasing credits moves the account to the paid tier and ends the monthly $5 grant.
 
-Checked on **2026-10-04**. Platform credits do not automatically mean free Jev access. Confirm your balance and model permissions; policies and dashboard eligibility may change.
+Other providers checked on **2026-10-04**. Platform credits do not automatically mean free Jev access. Confirm your balance and model permissions; policies and dashboard eligibility may change.
+
+### Experimental: OpenAI Decisions
+
+Create a key in the [OpenAI console](https://platform.openai.com/api-keys) and select **OpenAI Decisions · GPT-6 Luna（测试版）**. The endpoint and model are preset; only the key is needed. Emotions, intentions, affection scores, reply grades and next steps remain the same features.
+
+The [dedicated judgment API](https://developers.openai.com/api/docs/guides/decisions) returns native probabilities, classifications and scores rather than long generated answers. It is in public beta. Standard pricing is $0.10 per million input tokens, with no output-token charges; check the official page for other pricing conditions. ChatGPT / Codex subscriptions do not include API credits.
+
+**Only the official OpenAI Decisions endpoint is currently integrated. Local and mock API tests pass; real API inference has not been verified.** Test the connection before use. Access depends on account permissions, region and credits; we do not claim better speed or accuracy than Jev.
+
+<details>
+<summary>Other providers and free credits</summary>
+
+[Vercel](https://vercel.com/docs/ai-gateway/sdks-and-apis/openai-decisions) and [OpenRouter](https://openrouter.ai/openai/gpt-6-luna-decisions) also offer GPT-6 Luna Decisions. Their model IDs, authentication or request formats differ; do not enter their keys in this app's official OpenAI entry.
+
+As of **2026-10-13**, a live Vercel request returned HTTP 403: its monthly $5 free credits cannot access this model. OpenRouter's new-user credit eligibility has not been tested. No free route for this model has passed our live test; unverified independent gateways are not listed as recommendations.
+
+</details>
 
 ### Alternative: a text LLM
 
@@ -81,14 +101,14 @@ Existing Jev `.env` settings remain supported, as does `npm run setup -- --en`. 
 
 </details>
 
-401: check key; 402: credits; 403: permissions; 404: model ID/endpoint; 429: rate limits. If your endpoint does not support `response_format`, turn off JSON mode in connection options and test again; output validation remains strict.
+401: check key; 402: credits; 403: permissions; 404: model ID/endpoint; 429: rate limits; 451: region/network availability. If your endpoint does not support `response_format`, turn off JSON mode in connection options and test again; output validation remains strict.
 
 ### Installing with an AI agent
 
 You can give this repository link to Codex, Claude Code or another agent and ask it to follow the local setup steps. For agents:
 
 1. Check Node.js, install dependencies, build and start the service. No key is needed to open the setup page; do not block installation while the user obtains one.
-2. If the user has no preference, recommend Jev and link to the providers above. Offer LLMs when obtaining a Jev key is inconvenient; respect an existing key or explicit choice.
+2. If the user has no preference, recommend Jev and link to the providers above. Offer LLMs when obtaining a Jev key is inconvenient; respect an existing key or explicit choice. Explain limited-time offers, network restrictions and unverified entries without promising credits or analysis quality.
 3. Guide the user to enter their key, choose a model and test it in the local settings page. Do not ask them to paste secrets into the conversation or edit configuration files manually. Follow errors about access, credits or model IDs instead of retrying blindly.
 4. Hand over the actual URL, the restart command and `Ctrl+C` to stop the server. Distinguish “page running,” “connection verified” and “chat analysis verified”; report only what was checked.
 
@@ -134,9 +154,11 @@ Multiline bodies and consecutive messages from the same person are preserved. Da
 
 ## Development
 
-React + TypeScript + Vite + Express. The existing categories, scoring weights, grades, next-step rules and incremental chat processing are shared by all providers. The adapter supports OpenAI Chat Completions, Anthropic Messages, and native Jev endpoints (TypeSafe, Vercel, OpenRouter).
+React + TypeScript + Vite + Express. The existing categories, scoring weights, grades, next-step rules and incremental chat processing are shared by all providers. The adapter supports OpenAI Chat Completions, Anthropic Messages, OpenAI Decisions, and native Jev endpoints (TypeSafe, Vercel, OpenRouter, OpenCode).
 
 Jev distributions remain unchanged. LLMs return relative weights against the same questions and categories; code normalizes them into distributions and derives scores and distribution concentration. LLM percentages are not calibrated probabilities of someone's feelings, nor directly comparable measurements to Jev. No reply generation or new analysis features are added.
+
+OpenAI Decisions maps the existing questions to predicate / choice / score and preserves native probabilities, confidence and fractional scores. Requests are bounded by question and option counts, with at most two batches in parallel; self-reply continuations are isolated. Refusals and incomplete results fail explicitly without fabricated scores. Its scores are not directly interchangeable with Jev measurements.
 
 LLMs use a separate request pipeline: shared category definitions, short output IDs, concurrent batches and one overview after per-message analysis. Thinking is disabled for DeepSeek and other explicitly supported models; unsupported models keep their platform defaults. Self-reply ratings cannot see later messages.
 
