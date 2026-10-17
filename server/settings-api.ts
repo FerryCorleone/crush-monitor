@@ -58,7 +58,7 @@ settingsRouter.post("/:action", async (req, res) => {
     );
     const config = settingsConfig(settings);
     if (req.params.action === "models") {
-      if (!("engine" in config) || config.engine === "decisions") {
+      if (!("engine" in config) || config.engine !== "llm") {
         res.json({ models: [config.model] });
         return;
       }
