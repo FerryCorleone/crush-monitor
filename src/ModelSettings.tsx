@@ -129,6 +129,7 @@ export function ModelSettings({
     if (
       form.protocol === "jev" ||
       form.protocol === "decisions" ||
+      form.protocol === "systemone" ||
       (!form.apiKey.trim() && !sameKey) ||
       !form.baseUrl
     )
@@ -229,7 +230,12 @@ export function ModelSettings({
             </label>
           </>
         )}
-        {form.protocol !== "jev" && form.protocol !== "decisions" && (
+        {form.protocol === "systemone" && (
+          <p className="model-list-status">
+            型号：d1-ultra。按每个问题计算输入费用。Liquid 通用条款允许将内容用于训练；仅使用虚构、非个人样本，勿上传私人聊天。
+          </p>
+        )}
+        {form.protocol !== "jev" && form.protocol !== "decisions" && form.protocol !== "systemone" && (
           <>
             <div className="field">
               <span className="field-heading">
