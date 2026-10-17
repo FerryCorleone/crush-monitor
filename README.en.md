@@ -46,15 +46,13 @@ Other providers checked on **2026-10-04**. Platform credits do not automatically
 
 ### Liquid AI: d1-ultra
 
-Create a key in [Liquid Console](https://console.liquid.ai/) under Dashboard → API Keys. Select **Liquid AI · d1-ultra** in the app, enter the key, then test and save. The fixed `d1-ultra` model uses the [native System One API](https://docs.liquid.ai/lfm/models/d1), preserving Choice/Noul/Score probabilities, confidence and fractional scores. Liquid credentials are separate from Jev and OpenAI; the adapter never switches models.
+Liquid AI's d1-ultra analyzes emotions, intentions and reply quality, returning classifications, scores and probabilities.
 
-As of **2026-10-17**, [official pricing](https://www.liquid.ai/pricing) is **US$0.042 per million input tokens**, with free output and **US$2 credit per new organization**, subject to dashboard eligibility, expiry and balance. **Each question is billed independently**, including shared conversation input. Overview and per-message analysis ask several questions, so pasted text length alone underestimates cost. Response `usage.input_tokens` already totals all questions; consult the platform bill. Temporary rate/service errors retry at most once. Connection checks also use credits.
+| Provider | Get a key | App choice | Pricing and credits |
+| --- | --- | --- | --- |
+| Liquid | Sign in to [Liquid Console](https://console.liquid.ai/) and create a key under Dashboard → API Keys | Liquid AI · d1-ultra | US$2 trial credit per new organization; US$0.042 per million input tokens, free output ([pricing](https://www.liquid.ai/pricing)) |
 
-**Privacy:** [Section 6 of Liquid's general terms](https://www.liquid.ai/terms-conditions) permits training, fine-tuning and evaluation using submitted content. No service-specific exception has been verified for this endpoint. Use fictional, non-personal samples only; do not upload real private chats. Running locally does not keep inference data on your device.
-
-**Verification:** startup/build passed; a real three-primitive connectivity check passed; fictional overview, emotion/intent and self-reply analysis passed. The four real requests contained 28 questions and 9,083 input tokens, estimated at US$0.000382, without top-ups or automatic recharge. These checks do not establish accuracy or support for every length or region.
-
-Without browser-saved settings, a private local `.env` may select `CRUSH_PROVIDER=liquid` and `LIQUID_API_KEY`. Browser settings take precedence. Never paste keys into chat, commit them, or put them in command arguments.
+Enter your key, then select **检测连接并保存** (Test and save); the model is preset. Input is billed per question; check your dashboard for available credits. Chat content may be used for model training; review the [data-use terms](https://www.liquid.ai/terms-conditions) before use.
 
 ### Experimental: OpenAI Decisions
 
