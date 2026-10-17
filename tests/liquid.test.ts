@@ -1,9 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { promisify } from "node:util";
 import type { Questions } from "@typesafe-ai/sdk";
 import { compileLiquidRequest, liquidConfig } from "../server/liquid";
 import {
-  activeConfig,
   configFingerprint,
   parseSettings,
   settingsConfig,
@@ -113,20 +117,39 @@ test("Liquid fixes its own endpoint/model, normalizes native text only in its ad
   );
 });
 
-test("Liquid environment selection never falls back to a Jev or OpenAI key", (t) => {
-  const old = { ...process.env };
-  t.after(() => {
-    process.env = old;
-  });
-  process.env.CRUSH_PROVIDER = "liquid";
-  process.env.JEV_API_KEY = "other-provider-key";
-  process.env.OPENAI_API_KEY = "another-provider-key";
-  delete process.env.LIQUID_API_KEY;
-  assert.throws(() => activeConfig(), /Liquid API key required/);
-  process.env.LIQUID_API_KEY = "test-only-liquid-key";
-  assert.equal(activeConfig().provider, "liquid");
-  process.env.CRUSH_PROVIDER = "typo";
-  assert.throws(() => activeConfig(), /CRUSH_PROVIDER/);
+test("Liquid environment selection never falls back to a Jev or OpenAI key", async (t) => {
+  const dir = mkdtempSync(join(tmpdir(), "crush-liquid-env-"));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  // modelConfigPath is captured at module import. Use a fresh process with an
+  // explicit empty config path so a developer's saved settings cannot win.
+  await promisify(execFile)(
+    process.execPath,
+    [
+      "--import",
+      "tsx",
+      "--input-type=module",
+      "--eval",
+      `
+      import assert from "node:assert/strict";
+      import { activeConfig } from ${JSON.stringify(new URL("../server/model-config.ts", import.meta.url).href)};
+      assert.throws(() => activeConfig(), /Liquid API key required/);
+      process.env.LIQUID_API_KEY = "test-only-liquid-key";
+      assert.equal(activeConfig().provider, "liquid");
+      process.env.CRUSH_PROVIDER = "typo";
+      assert.throws(() => activeConfig(), /CRUSH_PROVIDER/);
+    `,
+    ],
+    {
+      env: {
+        ...process.env,
+        CRUSH_CONFIG_PATH: join(dir, "model.json"),
+        CRUSH_PROVIDER: "liquid",
+        LIQUID_API_KEY: "",
+        JEV_API_KEY: "other-provider-key",
+        OPENAI_API_KEY: "another-provider-key",
+      },
+    },
+  );
 });
 
 test("Liquid rejects incomplete, unexpected and out-of-range native responses without fabricating values", async () => {

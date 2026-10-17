@@ -8,6 +8,7 @@ import { once } from "node:events";
 
 test("Liquid local settings retain working config on failure/cancel, reuse only the same provider key, and expose no key", async (t) => {
   const dir = mkdtempSync(join(tmpdir(), "crush-liquid-settings-"));
+  const oldConfigPath = process.env.CRUSH_CONFIG_PATH;
   process.env.CRUSH_CONFIG_PATH = join(dir, "model.json");
   const { saveSettings, publicSettings } =
     await import("../server/model-config");
@@ -57,7 +58,8 @@ test("Liquid local settings retain working config on failure/cancel, reuse only 
   };
   t.after(() => {
     globalThis.fetch = original;
-    delete process.env.CRUSH_CONFIG_PATH;
+    if (oldConfigPath === undefined) delete process.env.CRUSH_CONFIG_PATH;
+    else process.env.CRUSH_CONFIG_PATH = oldConfigPath;
     rmSync(dir, { recursive: true, force: true });
   });
   const app = express();
