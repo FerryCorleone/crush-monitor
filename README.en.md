@@ -2,7 +2,7 @@
 
 [简体中文](README.md) · English
 
-A tool for looking at conversations with your crush or partner, using Jev, OpenAI Decisions (experimental), or a text LLM. It helps you make sense of emotions and intentions, and spot replies you could have worded better.
+A tool for looking at conversations with your crush or partner, using Jev, Liquid AI d1-ultra, OpenAI Decisions (experimental), or a text LLM. It helps you make sense of emotions and intentions, and spot replies you could have worded better.
 
 AI doesn't know your relationship or what happens outside the chat. Take the results lightly—as another perspective. Your own judgment and an honest conversation still matter more.
 
@@ -43,6 +43,18 @@ OpenCode verified on **2026-10-13**: full chat analysis completed without a paym
 Vercel requires credit-card verification for its free tier ([official guidance](https://community.vercel.com/t/free-credits-temporarily-have-restricted-access-due-to-abuse/21461/8)). Purchasing credits moves the account to the paid tier and ends the monthly $5 grant.
 
 Other providers checked on **2026-10-04**. Platform credits do not automatically mean free Jev access. Confirm your balance and model permissions; policies and dashboard eligibility may change.
+
+### Liquid AI: d1-ultra
+
+Create a key in [Liquid Console](https://console.liquid.ai/) under Dashboard → API Keys. Select **Liquid AI · d1-ultra** in the app, enter the key, then test and save. The fixed `d1-ultra` model uses the [native System One API](https://docs.liquid.ai/lfm/models/d1), preserving Choice/Noul/Score probabilities, confidence and fractional scores. Liquid credentials are separate from Jev and OpenAI; the adapter never switches models.
+
+As of **2026-10-17**, [official pricing](https://www.liquid.ai/pricing) is **US$0.042 per million input tokens**, with free output and **US$2 credit per new organization**, subject to dashboard eligibility, expiry and balance. **Each question is billed independently**, including shared conversation input. Overview and per-message analysis ask several questions, so pasted text length alone underestimates cost. Response `usage.input_tokens` already totals all questions; consult the platform bill. Temporary rate/service errors retry at most once. Connection checks also use credits.
+
+**Privacy:** [Section 6 of Liquid's general terms](https://www.liquid.ai/terms-conditions) permits training, fine-tuning and evaluation using submitted content. No service-specific exception has been verified for this endpoint. Use fictional, non-personal samples only; do not upload real private chats. Running locally does not keep inference data on your device.
+
+**Verification:** startup/build passed; a real three-primitive connectivity check passed; fictional overview, emotion/intent and self-reply analysis passed. The four real requests contained 28 questions and 9,083 input tokens, estimated at US$0.000382, without top-ups or automatic recharge. These checks do not establish accuracy or support for every length or region.
+
+Without browser-saved settings, a private local `.env` may select `CRUSH_PROVIDER=liquid` and `LIQUID_API_KEY`. Browser settings take precedence. Never paste keys into chat, commit them, or put them in command arguments.
 
 ### Experimental: OpenAI Decisions
 
@@ -154,7 +166,7 @@ Multiline bodies and consecutive messages from the same person are preserved. Da
 
 ## Development
 
-React + TypeScript + Vite + Express. The existing categories, scoring weights, grades, next-step rules and incremental chat processing are shared by all providers. The adapter supports OpenAI Chat Completions, Anthropic Messages, OpenAI Decisions, and native Jev endpoints (TypeSafe, Vercel, OpenRouter, OpenCode).
+React + TypeScript + Vite + Express. The existing categories, scoring weights, grades, next-step rules and incremental chat processing are shared by all providers. The adapter supports Liquid System One (`d1-ultra`), OpenAI Chat Completions, Anthropic Messages, OpenAI Decisions, and native Jev endpoints (TypeSafe, Vercel, OpenRouter, OpenCode).
 
 Jev distributions remain unchanged. LLMs return relative weights against the same questions and categories; code normalizes them into distributions and derives scores and distribution concentration. LLM percentages are not calibrated probabilities of someone's feelings, nor directly comparable measurements to Jev. No reply generation or new analysis features are added.
 
