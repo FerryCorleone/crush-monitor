@@ -11,10 +11,12 @@ for (const name of ['src','shared','server','tests','public','README.md','README
 await mkdir(join(out,'scripts'));
 for (const name of ['start.ts','setup.ts','check-api.ts','check-live.ts','export-source.mjs']) await cp(join(root,'scripts',name),join(out,'scripts',name));
 const env = await readFile(join(root,'.env'),'utf8').catch(()=>'');
-const keys = ['JEV_API_KEY', 'TYPESAFE_API_KEY', 'AI_GATEWAY_API_KEY', 'OPENROUTER_API_KEY', 'OPENCODE_API_KEY', 'OPENAI_API_KEY'];
+const keys = ['JEV_API_KEY', 'TYPESAFE_API_KEY', 'AI_GATEWAY_API_KEY', 'OPENROUTER_API_KEY', 'OPENCODE_API_KEY', 'OPENAI_API_KEY', 'LIQUID_API_KEY'];
 const secrets = keys.flatMap(key => [parse(env)[key], process.env[key]]).filter(v=>v && v.length>8);
 const localConfig = JSON.parse(await readFile(join(root,'.runtime','model.json'),'utf8').catch(()=>'null'));
 if (localConfig?.apiKey?.length > 8) secrets.push(localConfig.apiKey);
+const liquidKey = (await readFile(join(root,'.runtime','liquid-api-key'),'utf8').catch(()=>'')).trim();
+if (liquidKey.length > 8) secrets.push(liquidKey);
 let count=0;
 async function audit(dir) {
   for (const entry of await readdir(dir,{withFileTypes:true})) {
