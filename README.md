@@ -42,6 +42,18 @@ Vercel 免费档需完成信用卡验证（[官方说明](https://community.verc
 
 其他平台额度核对日期：**2026-10-04**。平台赠额不等于 Jev 免费；使用前确认账户余额和型号权限，后续以官方政策及控制台为准。
 
+### Liquid AI：d1-ultra
+
+在 [Liquid Console](https://console.liquid.ai/) 的 Dashboard → API Keys 创建 Key，网页选择「Liquid AI · d1-ultra」，填写 Key 后「检测连接并保存」。型号固定为 `d1-ultra`，使用[原生 System One 判断接口](https://docs.liquid.ai/lfm/models/d1)，保留 Choice、Noul、Score 的概率、确定度和小数评分。它使用独立 Liquid Key，不借用 Jev 或 OpenAI Key，也不会切换其他型号。
+
+截至 **2026-10-17**，[官方价格](https://www.liquid.ai/pricing)为每百万输入 Token **US$0.042**，输出免费；新组织提供 **US$2 试用额度**，有效期、资格和余额以控制台为准。**同一请求中的每道问题独立计费**，共享聊天会计入各题输入；总览和逐句分析含多道题，不能仅按粘贴文字长度估算。以响应的 `usage.input_tokens`（已合计所有问题）及平台账单为准，短暂限流/服务故障最多重试一次；连接检测也消耗少量额度。
+
+**隐私：**[Liquid 通用条款第 6 节](https://www.liquid.ai/terms-conditions)允许内容用于训练、微调和评估；尚未核实本接口存在服务专属例外。请仅使用虚构、非个人样本，不上传真实私人聊天。本机运行不代表数据留在本机。
+
+**验证范围：**启动及生产构建通过；真实三题连通探针通过；虚构样本的完整总览、对方情绪/意图、我方回复评级通过。真实测试共 4 次请求、28 道题、9,083 输入 Token，估算 US$0.000382，未充值或启用自动充值；这不代表准确率、所有长度或地区均已验证。
+
+无网页配置时，也可在本机私密 `.env` 设置 `CRUSH_PROVIDER=liquid` 与 `LIQUID_API_KEY`；已保存的网页配置优先。不要把 Key 发到聊天、提交到 Git 或放进命令参数。
+
 ### 试验性接入：OpenAI Decisions
 
 在 [OpenAI 控制台](https://platform.openai.com/api-keys)创建 API Key，网页选择「OpenAI Decisions · GPT-6 Luna（测试版）」。型号和地址已预设，只需填 Key；原有情绪、意图、好感度、回复评级和下一步功能保持不变。
@@ -161,7 +173,7 @@ iMessage 等软件复制后若只有正文，没有发送人，请先补上 `Ale
 
 ## 开发
 
-React + TypeScript + Vite + Express。所有模型共用同一套情绪、意图、好感度、回复评级、下一步规则。支持 OpenAI Chat Completions、Anthropic Messages、OpenAI Decisions，以及原来的 Jev 接口：
+React + TypeScript + Vite + Express。所有模型共用同一套情绪、意图、好感度、回复评级、下一步规则。支持 Liquid System One、OpenAI Chat Completions、Anthropic Messages、OpenAI Decisions，以及原来的 Jev 接口：
 
 | 平台 | 接口 | 模型 |
 | --- | --- | --- |
@@ -169,6 +181,7 @@ React + TypeScript + Vite + Express。所有模型共用同一套情绪、意图
 | Vercel | [TypeSafe 兼容接口](https://vercel.com/docs/ai-gateway/sdks-and-apis/typesafe) | `typesafe-ai/jev` |
 | OpenRouter | [Decisions（Alpha）](https://openrouter.ai/docs/api/api-reference/alphadecisions/submit-a-decisions-questions-and-answers-request) | `typesafe/jev-1.13` |
 | OpenCode | [System One](https://opencode.ai/v2/docs/console/models/#jev) | `jev-1.13-free`（限时免费） |
+| Liquid AI | [System One](https://docs.liquid.ai/lfm/models/d1) | `d1-ultra`（虚构样本完整分析已实测） |
 | OpenAI | [Decisions（公开测试）](https://developers.openai.com/api/docs/guides/decisions) | `gpt-6-luna`（仅模拟接口测试） |
 
 Jev 保留原始概率和确定度。LLM 按相同问题和分类返回相对权重，代码归一化为分布并计算评分与分布集中度；LLM 百分比是模型估计，不是经校准的真实心理概率，也不能与 Jev 的结果直接当作同尺度测量。没有新增回复生成、改写或报告功能。

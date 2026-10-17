@@ -3,6 +3,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { z } from "zod";
 import { activeConfig, type ActiveConfig } from "./model-config";
 import { evaluateLlm } from "./llm";
+import { compileLiquidRequest } from "./liquid";
 import {
   compileDecisionsRequest,
   decodeDecisions,
@@ -108,6 +109,27 @@ export async function evaluate(
 ) {
   if ("engine" in config && config.engine === "llm")
     return evaluateLlm(payload, config, signal, fetchImpl);
+  if ("engine" in config && config.engine === "liquid") {
+    const result = validateResult(
+      await requestProvider(
+        config,
+        compileLiquidRequest(payload),
+        signal,
+        fetchImpl,
+      ),
+      payload.questions,
+    );
+    if (
+      result.model !== config.model ||
+      Object.keys(result.answers).length !==
+        Object.keys(payload.questions).length
+    )
+      throw new ProviderError(
+        502,
+        "Liquid AI 返回的型号或判断不匹配，请重试。 / Unexpected Liquid response.",
+      );
+    return result;
+  }
   if ("engine" in config && config.engine === "decisions") {
     const deadline = AbortSignal.timeout(120000);
     const controller = new AbortController();

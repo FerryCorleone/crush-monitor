@@ -10,6 +10,7 @@ import { dirname, resolve } from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { MODEL_PRESETS, type ModelSettings } from "../shared/model-presets";
+import { liquidConfig, type LiquidConfig } from "./liquid";
 import {
   getProviderConfig,
   ConfigurationError,
@@ -34,14 +35,15 @@ export type DecisionsConfig = {
   apiKey: string;
   protocol: "decisions";
 };
-export type ActiveConfig = ProviderConfig | LlmConfig | DecisionsConfig;
+export type ActiveConfig =
+  ProviderConfig | LlmConfig | DecisionsConfig | LiquidConfig;
 export const modelConfigPath = resolve(
   process.env.CRUSH_CONFIG_PATH || ".runtime/model.json",
 );
 const schema = z
   .object({
     preset: z.string().max(80),
-    protocol: z.enum(["openai", "anthropic", "jev", "decisions"]),
+    protocol: z.enum(["openai", "anthropic", "jev", "decisions", "systemone"]),
     baseUrl: z.string().trim().max(500),
     model: z.string().trim().max(200),
     apiKey: z.string().trim().max(4096),
@@ -78,6 +80,13 @@ export function parseSettings(input: unknown): ModelSettings {
       );
     return { ...s, model: "gpt-6-luna", jsonMode: false };
   }
+  if (s.protocol === "systemone") {
+    if (s.preset !== "liquid" || s.baseUrl !== preset.baseUrl)
+      throw new ConfigurationError(
+        "Liquid 仅支持官方 System One 地址，请选择 Liquid AI 入口。",
+      );
+    return { ...s, model: "d1-ultra", jsonMode: false };
+  }
   if (!s.model || /[\s\x00-\x1f]/.test(s.model))
     throw new ConfigurationError("请填写平台提供的模型 ID，不是模型昵称。");
   let u: URL;
@@ -113,6 +122,7 @@ export function settingsConfig(s: ModelSettings): ActiveConfig {
   s = parseSettings(s);
   if (s.protocol === "jev")
     return getProviderConfig({ JEV_PROVIDER: s.preset, JEV_API_KEY: s.apiKey });
+  if (s.protocol === "systemone") return liquidConfig(s.apiKey);
   if (s.protocol === "decisions")
     return {
       engine: "decisions",
@@ -148,7 +158,14 @@ export function readSettings(file = modelConfigPath): ModelSettings | null {
 }
 export function activeConfig(): ActiveConfig {
   const saved = readSettings();
-  return saved ? settingsConfig(saved) : getProviderConfig();
+  if (saved) return settingsConfig(saved);
+  if (process.env.CRUSH_PROVIDER?.trim().toLowerCase() === "liquid")
+    return liquidConfig(process.env.LIQUID_API_KEY);
+  if (process.env.CRUSH_PROVIDER?.trim())
+    throw new ConfigurationError(
+      "CRUSH_PROVIDER 仅支持 liquid；Jev 请使用 JEV_PROVIDER。",
+    );
+  return getProviderConfig();
 }
 export function configFingerprint(config: ActiveConfig): string {
   return createHash("sha256")
@@ -161,7 +178,9 @@ export function configFingerprint(config: ActiveConfig): string {
         "engine" in config
           ? config.engine === "decisions"
             ? "decisions-adapter-v1"
-            : "llm-adapter-v2"
+            : config.engine === "liquid"
+              ? "liquid-adapter-v1"
+              : "llm-adapter-v2"
           : "llm-adapter-v1",
       ]),
     )
@@ -191,8 +210,14 @@ export function publicSettings() {
           }
         : {
             preset: config.provider,
-            protocol: "jev" as const,
-            baseUrl: "",
+            protocol:
+              "engine" in config && config.engine === "liquid"
+                ? ("systemone" as const)
+                : ("jev" as const),
+            baseUrl:
+              "engine" in config && config.engine === "liquid"
+                ? "https://api.liquid.ai/decisions/v1"
+                : "",
             model: config.model,
             jsonMode: true,
           }),

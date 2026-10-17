@@ -57,6 +57,14 @@ export const MODEL_PRESETS = [
     keyUrl: "https://platform.openai.com/api-keys",
   },
   {
+    id: "liquid",
+    name: "Liquid AI · d1-ultra",
+    protocol: "systemone",
+    baseUrl: "https://api.liquid.ai/decisions/v1",
+    model: "d1-ultra",
+    keyUrl: "https://console.liquid.ai/",
+  },
+  {
     id: "openai",
     name: "OpenAI",
     protocol: "openai",
@@ -139,7 +147,7 @@ export const MODEL_PRESETS = [
 ] as const;
 export type ModelSettings = {
   preset: string;
-  protocol: "openai" | "anthropic" | "jev" | "decisions";
+  protocol: "openai" | "anthropic" | "jev" | "decisions" | "systemone";
   baseUrl: string;
   model: string;
   apiKey: string;
