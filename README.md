@@ -10,9 +10,9 @@
 
 把下面这句话发给有本机操作权限的 Agent：
 
-> 帮我把这个项目安装到本地电脑并打开，按仓库说明检查网络，告诉我怎么获取 API Key、开始使用：https://github.com/FerryCorleone/crush-monitor
+> 请先读取仓库的 AGENTS.md，帮我安装并打开这个项目。检测网络后，按 Jev → StartLux 等原生判断模型 → LLM 推荐，最后从获取 API Key 开始给我编号使用步骤：https://github.com/FerryCorleone/crush-monitor
 
-Agent 会安装并打开网页，再给你适合当前网络的模型申请步骤。你只需自行注册、创建 Key，回到网页粘贴并检测即可。[给 Agent 的完整指引](AGENTS.md)。
+**安装 Agent 请先读取 [AGENTS.md](AGENTS.md)**：先检查网络，再按上述顺序推荐。安装回复只需一句结果和编号使用步骤，从注册、创建 API Key 开始，到网页配置、导入聊天结束；不列多平台对比表，步骤后不追加注意事项。
 
 ## 特点
 
@@ -41,8 +41,8 @@ npm start
 | --- | --- | --- | --- |
 | Jev | [TypeSafe 官方](https://console.typesafe.ai/)：登录 → API Keys → 创建 | `Jev · TypeSafe` | 当前无新用户赠额，需有可用余额；型号自动配置 |
 | Jev | [OpenCode](https://opencode.ai/console/)：邮箱注册 → Settings → Service accounts → 创建 Key，Models 选 Request | `Jev · OpenCode（限时免费）` | `jev-1.13-free` 限时免费；国内用户可能遇到地区限制 |
-| Jev | [Vercel AI Gateway](https://vercel.com/d?to=/%5Bteam%5D/~/ai-gateway/api-keys)：Create key | `Jev · Vercel AI Gateway` | 当前每月 $5 免费额度不能用于 Jev；需绑卡及可用付费额度。创建 Gateway Key，不是账户 Token |
 | Jev | [OpenRouter](https://openrouter.ai/settings/keys)：Create Key | `Jev · OpenRouter` | Jev 按量付费；试用额度是否适用，以控制台为准 |
+| Jev | [Vercel AI Gateway](https://vercel.com/d?to=/%5Bteam%5D/~/ai-gateway/api-keys)：Create key | `Jev · Vercel AI Gateway` | 当前每月 $5 免费额度不能用于 Jev；需绑卡及可用付费额度。创建 Gateway Key，不是账户 Token |
 | 原生判断 | [StartLux · Bamboo](https://bamboonode.dev/register)：注册 → [API Keys](https://bamboonode.dev/tokens) → 创建，分组选 `default` | `StartLux · Bamboo（试验性）` | 推广期免费，无需充值；由 Bamboo 提供 API，型号自动配置 |
 | 原生判断 | [Liquid AI](https://console.liquid.ai/)：登录 → Dashboard → API Keys → 创建 | `Liquid AI · d1-ultra` | 新组织 $2 试用；每百万输入 Token $0.042，按每道问题计费；聊天可能用于训练，先看[数据条款](https://www.liquid.ai/terms-conditions) |
 | 原生判断 | [OpenAI Decisions](https://platform.openai.com/api-keys)：创建官方 API Key | `OpenAI Decisions · GPT-6 Luna（测试版）` | 付费 API，测试版入口；ChatGPT/Codex 订阅不含 API 额度 |
