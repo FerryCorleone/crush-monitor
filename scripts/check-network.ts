@@ -4,6 +4,11 @@ import { MODEL_PRESETS } from "../shared/model-presets";
 import { PROVIDERS } from "../server/provider-config";
 import { LIQUID_ENDPOINT } from "../server/liquid";
 import {
+  buildInstallHandoff,
+  DEFAULT_APP_URL,
+  localAppUrl,
+} from "../shared/install-handoff";
+import {
   recommendProvider,
   type NetworkStatus as Status,
   type Probe,
@@ -71,7 +76,11 @@ export function classifyStatus(code: number, api: boolean): Status {
 
 // No dotenv, credentials, chat data, model inference, or proxy/DNS changes.
 // A reachable endpoint is only a candidate until the user's own key passes.
-export async function checkNetwork(fetchImpl: typeof fetch = fetch) {
+export async function checkNetwork(
+  fetchImpl: typeof fetch = fetch,
+  appUrl = DEFAULT_APP_URL,
+) {
+  appUrl = localAppUrl(appUrl);
   const deadline = AbortSignal.timeout(25000);
   const probes: Probe[] = [];
   const jobs = NETWORK_TARGETS.flatMap((target) => [
@@ -139,12 +148,14 @@ export async function checkNetwork(fetchImpl: typeof fetch = fetch) {
       candidate: accessible(probes[i * 2]) && accessible(probes[i * 2 + 1]),
     }),
   );
+  const recommendation = recommendProvider(providers);
   return {
     checkedAt: new Date().toISOString(),
     modelCallVerified: false,
+    recommendation,
+    handoff: buildInstallHandoff(recommendation, appUrl),
     note: "仅检查当前命令行网络下的网站和无 Key 接口可达性；401 表示需要认证，不代表 Key、地区、额度或模型调用已验证。403 也可能是防爬限制，可用本机浏览器复核网站。",
     providers,
-    recommendation: recommendProvider(providers),
   };
 }
 
@@ -152,10 +163,21 @@ if (
   process.argv[1] &&
   import.meta.url === pathToFileURL(resolve(process.argv[1])).href
 ) {
-  const report = await checkNetwork();
+  const appUrlIndex = process.argv.indexOf("--app-url");
+  const appUrl =
+    appUrlIndex < 0 ? DEFAULT_APP_URL : (process.argv[appUrlIndex + 1] ?? "");
+  const report = await checkNetwork(fetch, appUrl);
   if (process.argv.includes("--json"))
     console.log(JSON.stringify(report, null, 2));
-  else {
+  else if (process.argv.includes("--handoff")) {
+    if (report.handoff) console.log(report.handoff.markdown);
+    else {
+      console.error(
+        "尚未确认推荐平台，请先复核网络检查结果；不要直接降级到 LLM。",
+      );
+      process.exitCode = 2;
+    }
+  } else {
     const labels: Record<Status, string> = {
       reachable: "可达",
       "auth-required": "可达，需 Key/登录",

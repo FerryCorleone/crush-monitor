@@ -2,6 +2,10 @@
 
 适用于豆包、Codex、Claude Code 等能在用户电脑执行命令、打开浏览器的 Agent。用户让你“安装并打开”时，请完成到网页可操作，再交付获取 Key 的步骤。只有聊天或浏览器权限时，先说明需要本机命令执行能力，不要把云端沙箱当成用户电脑。
 
+## 0. 先读取本指引
+
+不假设工具会自动加载 AGENTS.md。通过 README 或仓库链接接到安装任务时，先完整读取本文件；已有安装目录先核对版本，不沿用旧对话中的安装规则。
+
 ## 1. 安装并打开
 
 - 检查操作系统、Node.js 和 npm。需要 Node.js **22.12+**；缺少时使用 [Node.js 官方安装包](https://nodejs.org/zh-cn/download)，按系统和架构选择。已有合适版本就直接使用。
@@ -25,8 +29,12 @@
 在**用户电脑**、同一个安装目录运行：
 
 ```sh
-npm run --silent check:network -- --json
+npm run --silent check:network -- --json --app-url http://127.0.0.1:3178/
 ```
+
+端口不同时，把 `--app-url` 换成实际已打开的本机网址。
+
+结果中的 `handoff.markdown` 是可直接回复给用户的正文，不需要再自行组织平台表格。如需仅输出这段正文，可把 `--json` 换成 `--handoff`；没有确认推荐时不会生成使用步骤，先按检测结果复核。
 
 这会分别检查 Jev 的 TypeSafe、OpenCode、OpenRouter、Vercel，原生判断模型 StartLux · Bamboo、Liquid，以及 LLM DeepSeek、百炼的网站和 API。无需 Key，不读取本机配置、不发送聊天、不调用模型。最多约 25 秒；不更改代理、VPN 或 DNS。
 
@@ -38,11 +46,11 @@ npm run --silent check:network -- --json
 | 2 | **类似 Jev 的原生判断模型**：优先 StartLux · Bamboo，再考虑 Liquid AI | Jev 确实不可用、或用户明确放弃 Jev 后再选；只在国内网络下也先检查可访问的 StartLux，不直接跳到 LLM |
 | 3 | **LLM 文本大模型**：DeepSeek、百炼等 | 前两档都无法使用，或用户明确要求 LLM 时才推荐 |
 
-StartLux 是本仓库已接入的名称；用户口述“StarLark”时先结合上下文确认，不能自行新增不存在的预设。Bamboo 是第三方托管平台，不能仅凭可直连就称作国内厂商。Liquid 的数据使用条件见 README；OpenAI Decisions 暂不作为首次安装的默认推荐，用户明确选择时再指导。
+已接入的原生判断预设为 StartLux · Bamboo 和 Liquid AI，名称以网页选项为准。Bamboo 是第三方托管平台，不能仅凭可直连就称作国内厂商。Liquid 的数据使用条件见 README；OpenAI Decisions 暂不作为首次安装的默认推荐，用户明确选择时再指导。
 
-默认读取检查结果中的 **`recommendation`**，不要根据 `providers` 数组位置、响应快慢、用户所在地或自己的偏好重新选平台：
+默认读取检查结果最前面的 **`recommendation` 和 `handoff`**，不要根据 `providers` 数组位置、响应快慢、用户所在地或自己的偏好重新选平台：
 
-- `status: candidate`：按 `primary.appChoice` 和 `primary.keyUrl` 给出一个主要方案，必要时仅一个备选。没有 Key 时只能说“建议使用，待填 Key 检测”，不能说已能调用模型。
+- `status: candidate`：按 `primary.appChoice` 和 `primary.keyUrl` 给出一个主要方案，直接使用 `handoff.markdown` 里的申请和使用步骤。不要另做平台推荐表。没有 Key 时只能说“建议使用，待填 Key 检测”，不能说已能调用模型。
 - `status: needs-verification`：先复核 `pendingProviders`，**不能直接推荐 DeepSeek**。在用户当前浏览器打开对应注册页，确认可操作；再核对启动项目和检测命令的进程是否能走同一网络链路。浏览器和命令行可能使用不同代理，系统代理或 VPN 开启不保证 Node.js 请求自动走代理。不要自行关闭 VPN、强制直连、修改全局代理或 DNS。
 - `status: unavailable`：说明当前未找到可用入口；依次核对 Jev → 原生判断 → LLM，给出一个能操作的下一步，不编造成功结果。
 
@@ -62,34 +70,33 @@ StartLux 是本仓库已接入的名称；用户口述“StarLark”时先结合
 | --- | --- | --- |
 | Jev 官方 | 打开 https://console.typesafe.ai/ → 注册/登录 → API Keys → 创建并复制 Key。当前不再给新用户赠额，需确认余额。 | `Jev · TypeSafe`；型号自动配置 |
 | OpenCode | 打开 https://opencode.ai/console/ → 邮箱注册并验证 → Settings → Service accounts → 创建 Key，Models 权限选 Request。当前限时免费型号为 `jev-1.13-free`，地区、活动和账号权限以实测为准。 | `Jev · OpenCode（限时免费）`；不切换付费型号 |
+| StartLux | 打开 https://bamboonode.dev/register 注册并验证邮箱 → 登录后到 https://bamboonode.dev/tokens → 创建 Key，分组选 `default`。[当前活动说明](https://bamboonode.dev/docs/ai-model/decisions/startlux) | `StartLux · Bamboo（试验性）`；型号自动配置，默认自动思考 |
+| Liquid AI | 打开 https://console.liquid.ai/ 注册并登录 → Dashboard → API Keys → 创建并复制 Key。数据使用条件见 README 的 Liquid 行。 | `Liquid AI · d1-ultra`；型号自动配置 |
 | DeepSeek | 打开 https://platform.deepseek.com/api_keys → 注册/登录 → API Keys → 创建并复制 Key。若提示额度不足，用户自行决定是否充值；不承诺免费赠额。 | `DeepSeek`；粘贴 Key 后从列表选快速文本型号，通常优先 Flash |
 | 通义千问 | 打开 https://bailian.console.aliyun.com/ → 登录并按提示开通百炼 → 地域选**北京** → API Key → 创建并复制。各地域 Key 不能混用；试用额度以控制台为准。[官方创建说明](https://help.aliyun.com/zh/model-studio/get-api-key) | `通义千问 · 百炼（北京）`；从列表选 Qwen Flash 等快速文本型号 |
-| StartLux | 打开 https://bamboonode.dev/register 注册并验证邮箱 → 登录后到 https://bamboonode.dev/tokens → 创建 Key，分组选 `default`。[当前活动说明](https://bamboonode.dev/docs/ai-model/decisions/startlux) | `StartLux · Bamboo（试验性）`；型号自动配置，默认自动思考 |
 
 用户特别选择 OpenRouter 或 Vercel 时，使用 README「模型选择与 API Key」里的对应链接和说明，明确付费/绑卡条件；平台赠额不一定能用于 Jev。不要把聊天会员订阅当成 API 额度，不自动替用户充值或绑定支付方式。
 
 ## 4. 带用户配置并开始使用
 
-最终回复必须是简短、可直接照做的操作清单：
+最终回复只用以下结构：**一句话给出实际使用地址和推荐平台，然后直接给编号使用步骤**。有 `handoff` 时以 `handoff.markdown` 为正文，不自行改写成平台对比表或泛泛说明。
 
-- 开头最多两句：实际使用地址，以及推荐哪个平台、为什么。需要降级时简短说明上一档的具体阻塞，不展开技术分析。
-- 后面使用 **1、2、3……的连续编号**，按该平台真正需要的操作拆分，**不规定固定步数**。每步只写一个明确目标；不要把注册、找 Key、打开设置、保存、导入聊天全挤进一大段。
-- 顺序覆盖：申请链接和注册登录 → 创建并复制 Key → 打开本机网页的模型设置 → 选择准确平台并填写 Key/型号 → 检测并保存 → 复制聊天并开始分析。能自然合并的操作可以合并，需要分开的就分开。
-- 必须给可点击的真实链接和界面里的准确选项。Jev、StartLux、Liquid 型号自动配置；LLM 等列表出现后选快速文本型号。不要让用户猜模型 ID。
-- 不贴整张平台表、网络日志、HTTP 状态码、源码结构、开发思路或冗长原理。用户只需要知道接下来点哪里、填什么。
-- 末尾用一两句说明 Key 在本机网页填写、不用发到对话；下次启动方式和停止方式。注册验证或付款需要用户操作时，在对应编号步骤里写清楚。
+- 第 1 步就从**申请 API Key 的链接、注册和登录**开始，第 2 步讲清创建与复制 Key；不能假设用户已拿到 Key，再从“粘贴刚创建的 Key”开始。
+- 后续依次覆盖：打开本机网页 → 进入模型设置并选择准确平台 → 填 Key/选择型号 → 检测并保存 → 导入聊天并开始分析。
+- 使用 **1、2、3……的连续编号**，步数按实际操作拆分，不固定数量。每步只写一个明确目标，申请地址和项目地址必须可点击。
+- 默认只给一个推荐平台。用户要求多个选项时，任何列表和表格都按 **Jev → StartLux → Liquid 等原生判断模型 → LLM** 排列；不能把 DeepSeek、千问放到 StartLux 前面，不能用“嫌国外平台麻烦就选 DeepSeek”跳过原生判断模型。
+- **最后一项编号步骤结束后立即结束回复。** 不追加“注意事项”“补充说明”“温馨提示”“下次启动”“停止服务”“总结”或邀请追问。费用、用户需亲自完成的验证等确有必要的内容并入对应操作步骤；其他细节只在用户追问时回答。
+- 不展示安装路径清单、进程信息、网络日志、HTTP 状态码、JSON、源码结构或开发原理；安装完成只用开头一句话交代。
 
-下面仅示范 StartLux 的写法，**不是要求每个平台使用同样步数**；实际回复按检测结论替换，不得机械推荐 StartLux：
+以下仅示范 StartLux 的正文；实际平台和网址以本次检测为准：
 
-> 已安装并打开：[好感监控器](http://127.0.0.1:3178/)。当前 Jev 入口受限，建议先用 StartLux，推广期无需充值。
+> 使用页面：[好感监控器](http://127.0.0.1:3178/)，建议使用「StartLux · Bamboo（试验性）」。
 >
-> 1. 打开 [Bamboo 注册页](https://bamboonode.dev/register)，用邮箱完成注册并登录。
-> 2. 进入 [API Keys](https://bamboonode.dev/tokens)，创建 Key，分组选 `default`，复制生成的 Key。
-> 3. 回到[好感监控器](http://127.0.0.1:3178/)，打开「聊天设置 → 模型设置」，选择「StartLux · Bamboo（试验性）」，粘贴 Key；型号自动配置。
+> 1. 打开 [Bamboo 注册页](https://bamboonode.dev/register)，用邮箱注册、完成验证并登录。
+> 2. 进入 [API Keys](https://bamboonode.dev/tokens)，创建 Key，分组选「default」，复制生成的 Key。
+> 3. 回到[好感监控器](http://127.0.0.1:3178/)，打开「聊天设置 → 模型设置」，选择「StartLux · Bamboo（试验性）」，在网页中粘贴 Key；型号自动配置。
 > 4. 点击「检测连接并保存」，等待连接成功。
-> 5. 复制微信或 QQ 聊天记录并粘贴到网页，确认哪个昵称是自己，开始分析。
->
-> Key 只填在本机网页，不用发给我。下次在 [实际安装目录] 运行 `npm start`；停止服务在运行终端按 `Ctrl+C`。
+> 5. 在电脑微信或 QQ 多选聊天记录并复制，粘贴到网页，确认哪个昵称是自己，开始分析。
 
 注册、验证码、实名或支付步骤由用户操作。用户直接在**本机网页**填写 Key；不要要求发到对话里，不把 Key 写进源码、命令行参数或日志。网页保存到 `.runtime/model.json`，优先于 `.env`；不需要让新手编辑文件。分析时相关聊天会发到所选模型平台，不要描述成离线分析。
 
