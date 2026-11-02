@@ -11,6 +11,7 @@
     "check:live": "tsx scripts/check-live.ts",
     "setup": "tsx scripts/setup.ts",
     "check:api": "tsx scripts/check-api.ts",
+    "check:network": "tsx scripts/check-network.ts",
     "export:source": "node scripts/export-source.mjs"
   },
   "dependencies": {

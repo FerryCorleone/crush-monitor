@@ -148,6 +148,14 @@ for (const provider of Object.keys(PROVIDERS) as (keyof typeof PROVIDERS)[]) {
       assert.deepEqual(JSON.parse(String(options?.body)), {
         ...payload,
         model: config.model,
+        ...(provider === "startlux"
+          ? {
+              think_mode: "auto",
+              none_check: false,
+              allow_none: false,
+              return_thought: false,
+            }
+          : {}),
       });
       assert.ok(options?.signal);
       return Response.json(fixture);
@@ -443,12 +451,13 @@ test("各 Jev 平台贯通总览、对方情绪意图、我方评级，使用同
     for (const provider of Object.keys(PROVIDERS)) {
       process.env.JEV_PROVIDER = provider;
       process.env.JEV_API_KEY = "test-only-key";
-      const { model, latencyMs, ...result } = await analyze(
+      const { model, latencyMs, usage, ...result } = await analyze(
         request,
         undefined,
         getProviderConfig(),
       );
       assert.ok(model);
+      assert.ok(usage.input_tokens >= fixture.usage.input_tokens);
       results.push(result);
     }
     for (const result of results.slice(1)) assert.deepEqual(results[0], result);

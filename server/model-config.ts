@@ -46,6 +46,7 @@ const schema = z
     model: z.string().trim().max(200),
     apiKey: z.string().trim().max(4096),
     jsonMode: z.boolean().default(true),
+    thinkMode: z.enum(["auto", "never"]).optional(),
   })
   .strict();
 export function parseSettings(input: unknown): ModelSettings {
@@ -53,6 +54,7 @@ export function parseSettings(input: unknown): ModelSettings {
   if (!result.success)
     throw new ConfigurationError("配置格式不正确，请检查后重试。");
   const s = result.data;
+  if (s.preset !== "startlux") delete s.thinkMode;
   const preset = MODEL_PRESETS.find((p) => p.id === s.preset);
   if (!preset || (s.preset !== "custom" && s.protocol !== preset.protocol))
     throw new ConfigurationError("服务商与接口类型不匹配。");
@@ -68,8 +70,14 @@ export function parseSettings(input: unknown): ModelSettings {
     const config = getProviderConfig({
       JEV_PROVIDER: s.preset,
       JEV_API_KEY: s.apiKey,
+      STARTLUX_THINK_MODE: s.thinkMode,
     });
-    return { ...s, baseUrl: "", model: config.model };
+    return {
+      ...s,
+      baseUrl: "",
+      model: config.model,
+      ...(s.preset === "startlux" ? { thinkMode: config.thinkMode } : {}),
+    };
   }
   if (s.protocol === "decisions") {
     if (s.preset !== "openai-decisions" || s.baseUrl !== preset.baseUrl)
@@ -112,7 +120,11 @@ export function parseSettings(input: unknown): ModelSettings {
 export function settingsConfig(s: ModelSettings): ActiveConfig {
   s = parseSettings(s);
   if (s.protocol === "jev")
-    return getProviderConfig({ JEV_PROVIDER: s.preset, JEV_API_KEY: s.apiKey });
+    return getProviderConfig({
+      JEV_PROVIDER: s.preset,
+      JEV_API_KEY: s.apiKey,
+      STARTLUX_THINK_MODE: s.thinkMode,
+    });
   if (s.protocol === "decisions")
     return {
       engine: "decisions",
@@ -162,7 +174,9 @@ export function configFingerprint(config: ActiveConfig): string {
           ? config.engine === "decisions"
             ? "decisions-adapter-v1"
             : "llm-adapter-v2"
-          : "llm-adapter-v1",
+          : config.provider === "startlux"
+            ? `startlux-adapter-v1:${config.thinkMode ?? "auto"}`
+            : "llm-adapter-v1",
       ]),
     )
     .digest("hex")
@@ -188,6 +202,9 @@ export function publicSettings() {
             baseUrl: saved.baseUrl,
             model: saved.model,
             jsonMode: saved.jsonMode,
+            ...(saved.preset === "startlux"
+              ? { thinkMode: saved.thinkMode }
+              : {}),
           }
         : {
             preset: config.provider,
@@ -195,6 +212,9 @@ export function publicSettings() {
             baseUrl: "",
             model: config.model,
             jsonMode: true,
+            ...(config.provider === "startlux" && "thinkMode" in config
+              ? { thinkMode: config.thinkMode }
+              : {}),
           }),
       configured: true,
       hasKey: true,
@@ -205,8 +225,8 @@ export function publicSettings() {
     return {
       preset: "deepseek",
       protocol: "openai" as const,
-      baseUrl: MODEL_PRESETS[0].baseUrl,
-      model: MODEL_PRESETS[0].model,
+      baseUrl: MODEL_PRESETS.find((p) => p.id === "deepseek")!.baseUrl,
+      model: MODEL_PRESETS.find((p) => p.id === "deepseek")!.model,
       jsonMode: true,
       configured: false,
       hasKey: false,

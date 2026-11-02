@@ -98,7 +98,9 @@ settingsRouter.post("/:action", async (req, res) => {
       if (error?.name === "TimeoutError")
         throw new ProviderError(
           504,
-          "这个型号的连接检测超过 40 秒，请换一个快速文本型号或稍后重试。",
+          settings.preset === "startlux"
+            ? "StartLux 连接检测超过 40 秒，请改用快速判断或稍后重试。"
+            : "这个型号的连接检测超过 40 秒，请换一个快速文本型号或稍后重试。",
         );
       throw error;
     });

@@ -27,11 +27,19 @@ export const PROVIDERS = {
     keyEnv: "OPENCODE_API_KEY",
     keyUrl: "https://opencode.ai/console/",
   },
+  startlux: {
+    name: "StartLux · Bamboo",
+    endpoint: "https://api.bamboonode.dev/v1/decisions",
+    model: "startlux-decision-27b-autothink",
+    keyEnv: "BAMBOO_API_KEY",
+    keyUrl: "https://bamboonode.dev/tokens",
+  },
 } as const;
 export type Provider = keyof typeof PROVIDERS;
 export type ProviderConfig = (typeof PROVIDERS)[Provider] & {
   provider: Provider;
   apiKey: string;
+  thinkMode?: "auto" | "never";
 };
 
 export class ConfigurationError extends Error {
@@ -61,6 +69,12 @@ export function getProviderConfig(
     throw new ConfigurationError(
       "这看起来是 OpenRouter Key，请选择 openrouter。 / Select OpenRouter for this key.",
     );
+  if (provider === "startlux") {
+    const thinkMode = env.STARTLUX_THINK_MODE?.trim() || "auto";
+    if (thinkMode !== "auto" && thinkMode !== "never")
+      throw new ConfigurationError("StartLux 分析方式只支持 auto 或 never。");
+    return { ...preset, provider, apiKey, thinkMode };
+  }
   return { ...preset, provider, apiKey };
 }
 

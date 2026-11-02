@@ -113,6 +113,14 @@ export const MODEL_PRESETS = [
     keyUrl: "https://console.typesafe.ai/",
   },
   {
+    id: "startlux",
+    name: "StartLux · Bamboo（试验性）",
+    protocol: "jev",
+    baseUrl: "",
+    model: "startlux-decision-27b-autothink",
+    keyUrl: "https://bamboonode.dev/tokens",
+  },
+  {
     id: "vercel",
     name: "Jev · Vercel AI Gateway",
     protocol: "jev",
@@ -144,6 +152,7 @@ export type ModelSettings = {
   model: string;
   apiKey: string;
   jsonMode: boolean;
+  thinkMode?: "auto" | "never";
 };
 export type PublicSettings = Omit<ModelSettings, "apiKey"> & {
   configured: boolean;

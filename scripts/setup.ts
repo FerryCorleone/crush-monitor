@@ -95,8 +95,8 @@ async function main() {
     }
     console.log(
       say(
-        "选择 Jev 平台（地址和模型自动配置）：",
-        "Choose a Jev provider (endpoint and model are automatic):",
+        "选择判断模型平台（地址和模型自动配置）：",
+        "Choose a decision-model provider (endpoint and model are automatic):",
       ),
     );
     const ids = Object.keys(PROVIDERS) as Provider[];

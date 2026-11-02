@@ -32,6 +32,9 @@ export function ModelSettings({
     model: initial.model,
     jsonMode: initial.jsonMode,
     apiKey: "",
+    ...(initial.preset === "startlux"
+      ? { thinkMode: initial.thinkMode ?? "auto" }
+      : {}),
   });
   const [models, setModels] = useState<string[]>([]),
     [busy, setBusy] = useState(""),
@@ -51,6 +54,7 @@ export function ModelSettings({
       model: p.model,
       jsonMode: true,
       apiKey: "",
+      ...(id === "startlux" ? { thinkMode: "auto" as const } : {}),
     });
     request.current?.abort();
     sequence.current++;
@@ -112,7 +116,7 @@ export function ModelSettings({
         } else
           setError(
             (e as Error).name === "TimeoutError"
-              ? "检测超过 45 秒，请换一个快速文本型号或稍后重试。"
+              ? "连接检测超时，请稍后重试或选择其他模型。"
               : (e as Error).message,
           );
       }
@@ -198,6 +202,23 @@ export function ModelSettings({
             required={!sameKey}
           />
         </div>
+        {form.preset === "startlux" && (
+          <label className="field">
+            分析方式
+            <select
+              value={form.thinkMode ?? "auto"}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  thinkMode: e.target.value as "auto" | "never",
+                })
+              }
+            >
+              <option value="auto">自动思考 · 遇到难题再推理</option>
+              <option value="never">快速判断 · 关闭思考</option>
+            </select>
+          </label>
+        )}
         {form.preset === "custom" && (
           <>
             <label className="field">

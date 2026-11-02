@@ -3,6 +3,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { z } from "zod";
 import { activeConfig, type ActiveConfig } from "./model-config";
 import { evaluateLlm } from "./llm";
+import { compileStartluxRequest, planStartluxBatches } from "./startlux";
 import {
   compileDecisionsRequest,
   decodeDecisions,
@@ -108,6 +109,62 @@ export async function evaluate(
 ) {
   if ("engine" in config && config.engine === "llm")
     return evaluateLlm(payload, config, signal, fetchImpl);
+  if (config.provider === "startlux" && !("engine" in config)) {
+    const controller = new AbortController();
+    const deadline = AbortSignal.timeout(240000);
+    const requestSignal = AbortSignal.any([
+      deadline,
+      controller.signal,
+      ...(signal ? [signal] : []),
+    ]);
+    const batches = planStartluxBatches(payload.questions);
+    const answers: Record<string, unknown> = {};
+    const usage = { input_tokens: 0, output_tokens: 0 };
+    let model: string = config.model;
+    const worker = async () => {
+      while (batches.length) {
+        requestSignal.throwIfAborted();
+        const questions = batches.shift()!;
+        const raw = await requestProvider(
+          config,
+          compileStartluxRequest({ ...payload, questions }, config.thinkMode),
+          requestSignal,
+          fetchImpl,
+          180000,
+        );
+        const result = validateResult(raw, questions);
+        Object.assign(answers, result.answers);
+        usage.input_tokens += result.usage.input_tokens;
+        usage.output_tokens += result.usage.output_tokens;
+        model = result.model;
+      }
+    };
+    try {
+      await Promise.all(
+        [worker(), worker()].map((p) =>
+          p.catch((error) => {
+            controller.abort();
+            throw error;
+          }),
+        ),
+      );
+      return validateResult({ model, answers, usage }, payload.questions);
+    } catch (error) {
+      if (
+        !signal?.aborted &&
+        !(error instanceof ProviderError) &&
+        (deadline.aborted ||
+          (error instanceof Error && error.name === "TimeoutError"))
+      )
+        throw new ProviderError(
+          504,
+          "StartLux 分析超时，可在模型设置改用快速判断，或缩小聊天范围后重试。",
+        );
+      throw error;
+    } finally {
+      controller.abort();
+    }
+  }
   if ("engine" in config && config.engine === "decisions") {
     const deadline = AbortSignal.timeout(120000);
     const controller = new AbortController();
@@ -167,8 +224,9 @@ async function requestProvider(
   body: unknown,
   signal: AbortSignal | undefined,
   fetchImpl: typeof fetch,
+  timeoutMs = 45000,
 ) {
-  const deadline = AbortSignal.timeout(45000);
+  const deadline = AbortSignal.timeout(timeoutMs);
   const requestSignal = signal ? AbortSignal.any([signal, deadline]) : deadline;
   for (let attempt = 0; ; attempt++) {
     requestSignal.throwIfAborted();
@@ -180,7 +238,10 @@ async function requestProvider(
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.any([requestSignal, AbortSignal.timeout(30000)]),
+      signal: AbortSignal.any([
+        requestSignal,
+        AbortSignal.timeout(timeoutMs === 45000 ? 30000 : timeoutMs),
+      ]),
     });
     if (!response.ok) {
       // Do not surface provider bodies: they may echo credentials or chat text.

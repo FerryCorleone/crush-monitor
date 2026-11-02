@@ -2,85 +2,28 @@
 
 [简体中文](README.md) · English
 
-A tool for looking at conversations with your crush or partner, using Jev, OpenAI Decisions (experimental), or a text LLM. It helps you make sense of emotions and intentions, and spot replies you could have worded better.
+A tool for looking at conversations with your crush or partner, using Jev, StartLux, OpenAI Decisions, or a text LLM. It helps you make sense of emotions and intentions, and spot replies you could have worded better.
 
 AI doesn't know your relationship or what happens outside the chat. Take the results lightly—as another perspective. Your own judgment and an honest conversation still matter more.
 
+## Let an agent install it
+
+Send this to an agent with permission to run commands on your computer:
+
+> Install and open this project on my local computer. Follow the repository instructions, check network access, and show me how to get an API key and start using it: https://github.com/FerryCorleone/crush-monitor
+
+The agent installs and opens the app, then gives you signup steps for a suitable provider. You register, create a key and paste it into the app. [Full agent instructions](AGENTS.md).
+
 ## Features
 
-- **WeChat-style conversation view:** analysis sits beneath each message.
-- **Emotions and intentions:** the top three probabilities from 12 emotion and 35 intention categories.
-- **Affection score and reply grades:** a conversation-level score, SSS–D grades for your replies, and suggested next steps.
-- **Ongoing analysis:** paste more messages to continue. Overlapping excerpts are detected, long conversations run in batches, and results survive a page refresh.
-- **Run locally with your own key:** configure your provider, model and API key directly in the browser. No hosted deployment required.
-
-The interface and analysis labels are currently in Chinese. This README provides English setup instructions; it does not add an English UI.
-
-## Why Jev?
-
-Jev is TypeSafe's model for structured judgments, returning classifications, scores and probabilities. This app needs short, per-message assessments rather than long generated answers. Emotion and intention judgments can also run in parallel within a request.
-
-- [Launch post by founder Diogo Almeida](https://x.com/CompleteSkeptic/status/2099925682726002904)
-- [Official introduction](https://typesafe.ai/blog/introducing-system-one-models-and-jev)
-
-## Choose a model and get an API key
-
-**We recommend starting with Jev.** The app was originally designed around its classifications, scores and probabilities. If registration, payment or getting a Jev key is difficult, use a text LLM such as DeepSeek or Qwen instead. Emotions, intentions, affection scores and reply grades remain the same features. Results vary by model; we do not have an accuracy ranking for relationship conversations.
-
-### First choice: Jev
-
-Create a key with one of these providers and select its **Jev** entry in the app. Model IDs are preset; you do not need to find one yourself or deploy the website to Vercel.
-
-| Provider | Create a key | Setup choice | Free credits |
-| --- | --- | --- | --- |
-| TypeSafe | Sign in to the [TypeSafe console](https://console.typesafe.ai/), create a key under API Keys and copy it | Jev · TypeSafe | **New signups no longer receive free credits.** The former $5 offer has stopped, with no announced return date ([official announcement](https://x.com/typesafeai/status/2104337824292220981)) |
-| OpenCode Console | [Sign up and verify your email](https://opencode.ai/console/); create a key in Settings → Service accounts with Models access set to Request | Jev · OpenCode（限时免费） | **Limited-time free** `jev-1.13-free`. Verified with a new account, no payment method or top-up; no automatic paid fallback ([official docs](https://opencode.ai/v2/docs/console/models/)) |
-| Vercel AI Gateway | Sign in to Vercel, open [AI Gateway → API Keys](https://vercel.com/d?to=/%5Bteam%5D/~/ai-gateway/api-keys) and select **Create key**. Use an AI Gateway key, not a Vercel account Access Token | Jev · Vercel AI Gateway | The platform offers **$5/month, but Jev is currently ineligible**. Its catalog entry does not accept free credits; purchased credits are required ([model list](https://vercel.com/ai-gateway/models?q=jev), [rules](https://vercel.com/docs/ai-gateway/pricing)) |
-| OpenRouter | Sign in to [OpenRouter Keys](https://openrouter.ai/settings/keys), select **Create Key** and copy the new key | Jev · OpenRouter | The FAQ mentions a small new-user allowance, but specifies neither an amount nor Jev eligibility. [Jev is paid](https://openrouter.ai/typesafe/jev-1.13/); top up if you have no usable balance. Free-model quotas are not Jev credits ([details](https://openrouter.ai/support/)) |
-
-OpenCode verified on **2026-10-13**: full chat analysis completed without a payment method or top-up. Requests worked through a proxy; mainland-direct inference returned HTTP 451 in our test. It is not currently a verified mainland-direct option. The promotion may end; the app never switches automatically to the paid model.
-
-Vercel requires credit-card verification for its free tier ([official guidance](https://community.vercel.com/t/free-credits-temporarily-have-restricted-access-due-to-abuse/21461/8)). Purchasing credits moves the account to the paid tier and ends the monthly $5 grant.
-
-Other providers checked on **2026-10-04**. Platform credits do not automatically mean free Jev access. Confirm your balance and model permissions; policies and dashboard eligibility may change.
-
-### Experimental: OpenAI Decisions
-
-Create a key in the [OpenAI console](https://platform.openai.com/api-keys) and select **OpenAI Decisions · GPT-6 Luna（测试版）**. The endpoint and model are preset; only the key is needed. Emotions, intentions, affection scores, reply grades and next steps remain the same features.
-
-The [dedicated judgment API](https://developers.openai.com/api/docs/guides/decisions) returns native probabilities, classifications and scores rather than long generated answers. It is in public beta. Standard pricing is $0.10 per million input tokens, with no output-token charges; check the official page for other pricing conditions. ChatGPT / Codex subscriptions do not include API credits.
-
-**Only the official OpenAI Decisions endpoint is currently integrated. Local and mock API tests pass; real API inference has not been verified.** Test the connection before use. Access depends on account permissions, region and credits; we do not claim better speed or accuracy than Jev.
-
-<details>
-<summary>Other providers and free credits</summary>
-
-[Vercel](https://vercel.com/docs/ai-gateway/sdks-and-apis/openai-decisions) and [OpenRouter](https://openrouter.ai/openai/gpt-6-luna-decisions) also offer GPT-6 Luna Decisions. Their model IDs, authentication or request formats differ; do not enter their keys in this app's official OpenAI entry.
-
-As of **2026-10-13**, a live Vercel request returned HTTP 403: its monthly $5 free credits cannot access this model. OpenRouter's new-user credit eligibility has not been tested. No free route for this model has passed our live test; unverified independent gateways are not listed as recommendations.
-
-</details>
-
-### Alternative: a text LLM
-
-DeepSeek and Qwen are convenient starting points for users in mainland China. If you already have another provider's key, use its matching entry.
-
-Built-in LLM presets include [DeepSeek](https://platform.deepseek.com/api_keys), [Qwen / Alibaba Bailian](https://bailian.console.aliyun.com/), [GLM](https://bigmodel.cn/usercenter/proj-mgmt/apikeys), [Kimi](https://platform.kimi.com/), [Doubao / Volcengine Ark](https://console.volcengine.com/ark/), [SiliconFlow](https://cloud.siliconflow.cn/account/ak), [OpenAI](https://platform.openai.com/api-keys), [Gemini](https://aistudio.google.com/apikey), [Claude](https://platform.claude.com/settings/keys), [OpenRouter](https://openrouter.ai/settings/keys), and [Vercel AI Gateway](https://vercel.com/ai-gateway).
-
-- **Pick a model:** paste your key to load a searchable list. Clicking a model fills the field and closes the list. If listing is unsupported, enter the model ID from the provider's console.
-- **Start with a fast text model**, such as DeepSeek Flash or Qwen Flash. Dedicated image, audio and embedding models are filtered out; thinking models may take longer. A listed model may still require activation or credits on your account—use the connection test to check.
-- **Test and save:** the test shows elapsed time, can be cancelled and stops after 40 seconds. Missing activation and insufficient credits have separate messages. A failed test preserves the previous configuration. A chat subscription does not include API credits; check the provider's console for trials and pricing.
-
-<details>
-<summary>Other regions, gateways or local models</summary>
-
-Choose the custom OpenAI / Claude-compatible service and enter the provider's Base URL, model ID and key. For local servers without authentication, use `local` as the key. Protocol compatibility does not mean every model has been tested.
-
-</details>
+- **WeChat-style chat view:** the top three emotion and intention probabilities beneath each message.
+- **Affection and reply grades:** an overall signal score, SSS–D grades for your replies, and next-step suggestions.
+- **Ongoing analysis:** new messages are merged, deduplicated and analyzed in batches; results survive refresh.
+- **Local app, browser setup:** select a provider and enter your key in the page, without editing configuration files.
 
 ## Run locally
 
-Install Node.js 22.12+. Download or clone this repository, then run these commands in the project directory. The same commands work on macOS, Windows and Linux.
+Requires [Node.js 22.12+](https://nodejs.org/en/download). Download the source and run these commands in the project directory on macOS, Windows or Linux:
 
 ```sh
 npm ci
@@ -88,92 +31,54 @@ npm run build
 npm start
 ```
 
-Startup attempts to open **http://127.0.0.1:3178/** in your browser. Open it manually if needed. First launch shows model settings: **choose provider → paste key → confirm model → test and save**. The test sends synthetic questions, costs a small amount of API credits, and does not send your chats. A failed test preserves the previous configuration.
+Open **http://127.0.0.1:3178/**. Model settings appear on first launch; later, open **聊天设置 → 模型设置** (Chat settings → Model settings). Keep the terminal running. Next time, use `npm start`; stop with `Ctrl+C`.
 
-Keep the terminal running; next time use `npm start`. Change providers in **聊天设置 → 模型设置** (Chat settings → Model settings), with no restart required. Changing models preserves messages but clears old analysis and runs it again.
+## Models and API keys
 
-Keys are stored in `.runtime/model.json` by the local server, never in browser storage or returned in settings responses. This is **plaintext local configuration**, restricted to the current user on macOS/Linux, not an encrypted vault. Do not share `.runtime`. Configuration endpoints are local-only; the service listens on loopback by default.
+**We recommend Jev first:** it returns classifications, scores and probabilities directly, matching the app's per-message analysis. [Founder's launch post](https://x.com/CompleteSkeptic/status/2099925682726002904) · [Official introduction](https://typesafe.ai/blog/introducing-system-one-models-and-jev). If access is inconvenient, use DeepSeek, Qwen/Bailian or StartLux. The features stay the same; results vary by model.
 
-<details>
-<summary>Upgrading / CLI configuration</summary>
+| Type | Provider and key creation | Option in the app | Free access / notes |
+| --- | --- | --- | --- |
+| Jev | [TypeSafe](https://console.typesafe.ai/): sign in → API Keys → create | `Jev · TypeSafe` | No current new-user credit grant; a usable balance is required. Model ID is preset |
+| Jev | [OpenCode](https://opencode.ai/console/): verify email → Settings → Service accounts → create key with Models: Request | `Jev · OpenCode（限时免费）` | Limited-time free `jev-1.13-free`; users in mainland China may encounter regional restrictions |
+| Jev | [Vercel AI Gateway](https://vercel.com/d?to=/%5Bteam%5D/~/ai-gateway/api-keys): Create key | `Jev · Vercel AI Gateway` | Monthly $5 free credits currently cannot be used for Jev; card verification and usable paid credits required. Use a Gateway key, not an account token |
+| Jev | [OpenRouter](https://openrouter.ai/settings/keys): Create Key | `Jev · OpenRouter` | Pay-as-you-go; check the dashboard for trial-credit eligibility |
+| Native decisions | [StartLux · Bamboo](https://bamboonode.dev/register): register → [API Keys](https://bamboonode.dev/tokens) → create in the `default` group | `StartLux · Bamboo（试验性）` | Free during the promotion, with no top-up required. API hosted by Bamboo; model ID is preset |
+| Native decisions | [OpenAI Decisions](https://platform.openai.com/api-keys): create an official API key | `OpenAI Decisions · GPT-6 Luna（测试版）` | Paid API, beta entry; ChatGPT/Codex subscriptions exclude API credits |
+| LLM | [DeepSeek](https://platform.deepseek.com/api_keys): API Keys → create | `DeepSeek` | Pay-as-you-go; check the dashboard for credits. Prefer a fast Flash model |
+| LLM | [Qwen / Bailian](https://bailian.console.aliyun.com/): select Beijing → API Key → create | `通义千问 · 百炼（北京）` | Check dashboard trial eligibility. Regional keys cannot be mixed; prefer Qwen Flash |
+| LLM | [GLM](https://bigmodel.cn/usercenter/proj-mgmt/apikeys): create API key | `智谱 GLM` | Free access and rate limits depend on the model |
+| LLM | [Kimi](https://platform.kimi.com/): create a console API key | `Kimi` | Depends on account, model and promotions |
+| LLM | [Doubao / Volcengine Ark](https://console.volcengine.com/ark/): create API key | `豆包 · 火山方舟` | Check dashboard credits; inference endpoint IDs are also accepted |
+| LLM | [SiliconFlow](https://cloud.siliconflow.cn/account/ak): create API key | `硅基流动` | Depends on the model; not all models are free |
+| LLM | [OpenAI](https://platform.openai.com/api-keys) / [Gemini](https://aistudio.google.com/apikey) / [Claude](https://platform.claude.com/settings/keys): create the matching key | `OpenAI` / `Google Gemini` / `Anthropic Claude` | Depends on provider and account; chat subscriptions are separate |
+| LLM | [OpenRouter](https://openrouter.ai/settings/keys) / [Vercel](https://vercel.com/ai-gateway): create a platform key | `OpenRouter · LLM` / `Vercel AI Gateway · LLM` | Depends on provider and model; these are separate from the Jev entries |
+| Custom | Use your provider's Base URL, model ID and key | `其他 OpenAI / Claude 兼容服务` | Compatible APIs and local servers supported; use `local` for a local server without authentication |
 
-Existing Jev `.env` settings remain supported, as does `npm run setup -- --en`. Browser-saved configuration takes precedence over `.env`. Delete `.runtime/model.json` to return to environment settings, then refresh. Changing provider or Base URL requires entering the matching key again. Set `CRUSH_OPEN_BROWSER=0` to disable automatic browser opening.
+After pasting a key, LLM providers load a model list. Pick a fast text model, then click **检测连接并保存** (Test and save). If listing is unavailable, enter the model ID from the provider's console. Failed tests preserve the old configuration. If the app reports an invalid key or insufficient credits, check your key and balance with the provider.
 
-</details>
-
-401: check key; 402: credits; 403: permissions; 404: model ID/endpoint; 429: rate limits; 451: region/network availability. If your endpoint does not support `response_format`, turn off JSON mode in connection options and test again; output validation remains strict.
-
-### Installing with an AI agent
-
-You can give this repository link to Codex, Claude Code or another agent and ask it to follow the local setup steps. For agents:
-
-1. Check Node.js, install dependencies, build and start the service. No key is needed to open the setup page; do not block installation while the user obtains one.
-2. If the user has no preference, recommend Jev and link to the providers above. Offer LLMs when obtaining a Jev key is inconvenient; respect an existing key or explicit choice. Explain limited-time offers, network restrictions and unverified entries without promising credits or analysis quality.
-3. Guide the user to enter their key, choose a model and test it in the local settings page. Do not ask them to paste secrets into the conversation or edit configuration files manually. Follow errors about access, credits or model IDs instead of retrying blindly.
-4. Hand over the actual URL, the restart command and `Ctrl+C` to stop the server. Distinguish “page running,” “connection verified” and “chat analysis verified”; report only what was checked.
+Free-access policies can change; check the provider dashboard for current credits and conditions.
 
 ## Usage
 
-1. Copy your conversation, or open a text export and copy its contents. Paste into the input field.
-2. Select your own name and click **开始分析** (Analyze). Relationship settings are available in **聊天设置** (Chat settings).
-3. Read the emotion, intention and reply labels. Click a label for details.
-4. Paste new messages to continue the conversation.
+1. Multi-select and copy WeChat or QQ messages on your computer, then paste into the app. For WhatsApp, export a `.txt` chat; for iMessage and other apps, use `Name: body` text.
+2. Confirm which name is yours and start analysis. Adjust the relationship in **聊天设置** (Chat settings).
+3. Read emotions, intentions, reply grades and next steps. Click the affection score for details.
+4. Paste new messages to continue.
 
-### Supported text formats
-
-| Source | What to paste |
-| --- | --- |
-| WeChat | Desktop multi-message copy: name, Chinese date/time, then message body on separate lines |
-| QQ | `Name: 09-17 19:26:53`, followed by the body on the next line; dates with a year also work |
-| WhatsApp | [Export a chat](https://faq.whatsapp.com/1180414079177245/), open the `.txt` file and copy its contents; the two common layouts below are supported |
-| iMessage / other apps | Format each message as `Name: body`; English names and names containing spaces work |
-
-```text
-[9/17/26, 7:26:53 PM] Alex: Dinner tonight?
-[9/17/26, 7:27:00 PM] Me: Sounds good
-```
-
-```text
-17/09/2026, 19:26 - Alex: Dinner tonight?
-17/09/2026, 19:27 - Me: Sounds good
-```
-
-If copying from iMessage or another app gives you only the message bodies, add `Alex:` / `Me:` yourself. The app cannot recover missing sender information. Native iMessage bulk-copy compatibility has not been verified; only the manually labelled text format is supported. WhatsApp exports can vary by locale and version. The formats above have automated parser tests, not end-to-end verification on every client.
-
-Multiline bodies and consecutive messages from the same person are preserved. Dates are kept as copied: the parser does not guess day/month order or missing years. Only two-person text conversations are supported—not images, audio, ZIP/HTML exports or chat databases. The app does not monitor messaging apps in the background.
+Two-person text conversations only. The app does not read chat databases or monitor messaging apps. See [format examples](docs/reference.en.md#chat-formats). The interface is currently in Chinese.
 
 ## Notes
 
-- The affection score combines six dimensions: keeping the conversation going, engagement, care, openness, intimacy and concrete actions. Click the score for a breakdown. An explicit refusal that still applies limits the score. **It is not the probability that someone likes you.**
-- Long conversations are processed in batches; the full history is not capped at 500 messages. New imports analyze new content and revisit recent messages from the other person. Previous grades for your own replies are retained.
-- Scoring uses recent messages and relevant original excerpts from history, including invitations, care, refusals and retractions. Old scores are not evidence for new scores. Retrieval can miss context.
-- Each model request stays within 500 messages and 12,000 text characters. Overlong individual messages are retained but need splitting before analysis. Paste at most 250,000 characters at a time; total history depends on browser storage capacity.
-- Chats and results stay in this browser's local database. **清空聊天，重新开始** (Clear chat and start over) deletes them. Other browsers or URL ports do not share the same data; clearing browser data also removes it.
-- Original messages needed for analysis are sent to your selected platform and its model provider using your account's credits. Local storage does not mean offline inference.
-- If analysis fails, check the terminal, API key and account credits. Never commit `.env`, `.runtime` or private conversations.
+- Affection is a conversation-signal score, not the probability that someone likes you. Scores across models are not directly comparable.
+- Chats and results stay in the current browser. Changing browsers or ports, or clearing browser data, affects saved records.
+- Keys are stored in plaintext in the local `.runtime/model.json`. Do not share `.runtime` or `.env`. Relevant chat excerpts are sent to your selected model provider using your account's credits.
 
-## Development
-
-React + TypeScript + Vite + Express. The existing categories, scoring weights, grades, next-step rules and incremental chat processing are shared by all providers. The adapter supports OpenAI Chat Completions, Anthropic Messages, OpenAI Decisions, and native Jev endpoints (TypeSafe, Vercel, OpenRouter, OpenCode).
-
-Jev distributions remain unchanged. LLMs return relative weights against the same questions and categories; code normalizes them into distributions and derives scores and distribution concentration. LLM percentages are not calibrated probabilities of someone's feelings, nor directly comparable measurements to Jev. No reply generation or new analysis features are added.
-
-OpenAI Decisions maps the existing questions to predicate / choice / score and preserves native probabilities, confidence and fractional scores. Requests are bounded by question and option counts, with at most two batches in parallel; self-reply continuations are isolated. Refusals and incomplete results fail explicitly without fabricated scores. Its scores are not directly interchangeable with Jev measurements.
-
-LLMs use a separate request pipeline: shared category definitions, short output IDs, concurrent batches and one overview after per-message analysis. Thinking is disabled for DeepSeek and other explicitly supported models; unsupported models keep their platform defaults. Self-reply ratings cannot see later messages.
-
-Categories, counts and numeric ranges are validated. Only invalid judgments are retried; truncated batches are split and retried once with a larger output budget. Completed batches are retained if recovery fails, without placeholder scores. Bailian uses model-specific thinking controls and accepts streaming-only models. Connection checks time out after 40 seconds and can be cancelled; activation and quota errors are reported separately. Real API tests cover native DeepSeek and representative Qwen, DeepSeek, Kimi, GLM and MiniMax models on Bailian; other presets and protocol tests do not imply per-model verification. Cross-model accuracy on Chinese relationship chats has not been benchmarked.
-
-```sh
-npm run dev        # http://127.0.0.1:5178/
-npm test           # local tests; no model calls
-npm run check:api  # verify the selected provider; uses a small amount of API credits
-npm run check:live # full analysis with sample chat; uses the selected provider's credits
-```
+[Troubleshooting, legacy configuration and development](docs/reference.en.md)
 
 ## License
 
-[MIT](LICENSE). Not affiliated with WeChat, Tencent, TypeSafe or any messaging platform mentioned here.
+[MIT](LICENSE). Not affiliated with WeChat, Tencent or TypeSafe.
 
 ## Community projects
 
