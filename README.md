@@ -35,7 +35,7 @@ npm start
 
 ## 模型选择与 API Key
 
-**优先推荐 Jev**：它直接返回分类、评分和概率，适合这款工具的逐句分析。[创始人首发推文](https://x.com/CompleteSkeptic/status/2099925682726002904) · [官方介绍](https://typesafe.ai/blog/introducing-system-one-models-and-jev)。获取不便时，国内用户可以选 DeepSeek、百炼；也可试用 StartLux，分析功能相同，结果会有差异。
+**优先推荐 Jev**：它直接返回分类、评分和概率，适合这款工具的逐句分析。[创始人首发推文](https://x.com/CompleteSkeptic/status/2099925682726002904) · [官方介绍](https://typesafe.ai/blog/introducing-system-one-models-and-jev)。按当前网络，优先选 Jev，其次选 StartLux 等原生判断模型，最后再选 DeepSeek、百炼等 LLM。分析功能相同，结果会有差异。
 
 | 类型 | 平台与 Key 创建步骤 | 网页中选择 | 免费额度 / 注意事项 |
 | --- | --- | --- | --- |

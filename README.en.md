@@ -35,7 +35,7 @@ Open **http://127.0.0.1:3178/**. Model settings appear on first launch; later, o
 
 ## Models and API keys
 
-**We recommend Jev first:** it returns classifications, scores and probabilities directly, matching the app's per-message analysis. [Founder's launch post](https://x.com/CompleteSkeptic/status/2099925682726002904) · [Official introduction](https://typesafe.ai/blog/introducing-system-one-models-and-jev). If access is inconvenient, use DeepSeek, Qwen/Bailian or StartLux. The features stay the same; results vary by model.
+**We recommend Jev first:** it returns classifications, scores and probabilities directly, matching the app's per-message analysis. [Founder's launch post](https://x.com/CompleteSkeptic/status/2099925682726002904) · [Official introduction](https://typesafe.ai/blog/introducing-system-one-models-and-jev). Choose by current network availability: Jev first, then native decision models such as StartLux, then text LLMs such as DeepSeek or Qwen/Bailian. The features stay the same; results vary by model.
 
 | Type | Provider and key creation | Option in the app | Free access / notes |
 | --- | --- | --- | --- |

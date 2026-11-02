@@ -5,6 +5,10 @@ import {
   classifyStatus,
   NETWORK_TARGETS,
 } from "../scripts/check-network";
+import {
+  recommendProvider,
+  type ProviderAvailability,
+} from "../shared/provider-recommendation";
 
 test("network checks distinguish authentication, region restrictions and temporary failures from reachability", () => {
   for (const code of [200, 204])
@@ -49,7 +53,7 @@ test("network checks send no keys or chats, bound concurrency and require both s
     });
   };
   const r = await checkNetwork(mock);
-  assert.equal(calls, 14);
+  assert.equal(calls, NETWORK_TARGETS.length * 2);
   assert.equal(max, 4);
   assert.equal(r.modelCallVerified, false);
   assert.equal(r.providers.find((p) => p.id === "typesafe")?.candidate, false);
@@ -59,11 +63,115 @@ test("network checks send no keys or chats, bound concurrency and require both s
     false,
   );
   assert.equal(r.providers.find((p) => p.id === "deepseek")?.candidate, true);
-  assert.equal(
-    r.providers.find((p) => p.id === "startlux")?.group,
-    "alternative",
-  );
+  assert.equal(r.providers.find((p) => p.id === "startlux")?.group, "decision");
   assert.ok(!JSON.stringify(r).includes("private-"));
+});
+
+function availability(
+  id: string,
+  status: "ok" | "blocked" | "unknown" | "challenge" | "limited",
+): ProviderAvailability {
+  const target = NETWORK_TARGETS.find((p) => p.id === id)!;
+  const good = { status: "reachable" as const, httpStatus: 200, elapsedMs: 10 };
+  const bad =
+    status === "blocked"
+      ? { status: "restricted" as const, httpStatus: 451, elapsedMs: 20 }
+      : status === "challenge"
+        ? { status: "restricted" as const, httpStatus: 403, elapsedMs: 20 }
+        : status === "limited"
+          ? { status: "rate-limited" as const, httpStatus: 429, elapsedMs: 20 }
+          : { status: "unknown" as const, elapsedMs: 8000 };
+  return {
+    id,
+    name: target.name,
+    appChoice: target.name,
+    group: target.group,
+    keyUrl: target.website,
+    website: status === "ok" ? good : bad,
+    api: status === "ok" ? good : bad,
+    candidate: status === "ok",
+  };
+}
+
+test("recommendations prefer any reachable Jev, then native decisions, and only then an LLM", () => {
+  const ids = NETWORK_TARGETS.map((p) => p.id);
+  const scenario = (available: string[]) =>
+    ids.map((id) =>
+      availability(id, available.includes(id) ? "ok" : "blocked"),
+    );
+  assert.equal(
+    recommendProvider(scenario(ids).reverse()).primary?.id,
+    "typesafe",
+  );
+  assert.equal(
+    recommendProvider(
+      scenario(["openrouter", "startlux", "liquid", "deepseek"]),
+    ).primary?.id,
+    "openrouter",
+  );
+  assert.equal(
+    recommendProvider(scenario(["opencode", "startlux", "deepseek"])).primary
+      ?.id,
+    "opencode",
+  );
+  assert.equal(
+    recommendProvider(scenario(["startlux", "deepseek", "qwen"])).primary?.id,
+    "startlux",
+  );
+  assert.equal(
+    recommendProvider(scenario(["liquid", "deepseek"])).primary?.id,
+    "liquid",
+  );
+  assert.equal(
+    recommendProvider(scenario(["deepseek", "qwen"])).primary?.id,
+    "deepseek",
+  );
+  assert.equal(recommendProvider(scenario(["qwen"])).primary?.id, "qwen");
+  assert.equal(recommendProvider(scenario([])).status, "unavailable");
+});
+
+test("ambiguous Jev failures require browser/proxy review before suggesting a lower tier", () => {
+  for (const status of ["unknown", "challenge", "limited"] as const) {
+    const providers = NETWORK_TARGETS.map((p) =>
+      availability(
+        p.id,
+        p.id === "typesafe"
+          ? status
+          : ["startlux", "deepseek"].includes(p.id)
+            ? "ok"
+            : "blocked",
+      ),
+    );
+    const r = recommendProvider(providers);
+    assert.equal(r.status, "needs-verification");
+    assert.equal(r.primary, null);
+    assert.equal(r.requiresBrowserVerification, true);
+    assert.deepEqual(r.pendingProviders, ["typesafe"]);
+  }
+  const providers = NETWORK_TARGETS.map((p) =>
+    availability(
+      p.id,
+      p.id === "startlux" ? "unknown" : p.id === "deepseek" ? "ok" : "blocked",
+    ),
+  );
+  assert.equal(recommendProvider(providers).status, "needs-verification");
+  assert.deepEqual(recommendProvider(providers).pendingProviders, ["startlux"]);
+});
+
+test("a fallback also respects unresolved native candidates instead of jumping to an LLM", () => {
+  const providers = NETWORK_TARGETS.map((p) =>
+    availability(
+      p.id,
+      p.id === "startlux"
+        ? "unknown"
+        : ["typesafe", "deepseek"].includes(p.id)
+          ? "ok"
+          : "blocked",
+    ),
+  );
+  const r = recommendProvider(providers);
+  assert.equal(r.primary?.id, "typesafe");
+  assert.equal(r.fallback, null);
 });
 
 test("network checks follow bounded HTTPS website redirects without treating API redirects or loops as success", async () => {
