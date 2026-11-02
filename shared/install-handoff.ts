@@ -21,8 +21,7 @@ export function localAppUrl(value = DEFAULT_APP_URL): string {
   }
 }
 
-// Keep acquisition inside the numbered instructions. The installer should not
-// assume a first-time user already has a key or append a second advice section.
+// Each choice includes its acquisition path; shared steps work for any choice.
 const keySteps: Record<string, string[]> = {
   typesafe: [
     "打开 [TypeSafe 控制台](https://console.typesafe.ai/)，注册并登录。",
@@ -60,6 +59,24 @@ const keySteps: Record<string, string[]> = {
   ],
 };
 
+const descriptions: Record<string, string> = {
+  typesafe: "Jev 原生判断；官方入口，需可用余额",
+  opencode: "Jev 原生判断；免费型号的活动及地区权限以控制台为准",
+  openrouter: "Jev 原生判断；按量付费",
+  vercel: "Jev 原生判断；需账号验证及可用于 Jev 的付费额度",
+  startlux: "原生判断；Bamboo 第三方托管，型号自动配置",
+  liquid:
+    "原生判断；聊天可能用于训练，先看 [数据条款](https://www.liquid.ai/terms-conditions)",
+  deepseek: "国内平台，LLM 文本分析；按量付费",
+  qwen: "国内平台，LLM 文本分析；选北京地域，试用额度以控制台为准",
+};
+
+const availabilityLabels = {
+  candidate: "当前网络可达，待填 Key 检测",
+  "needs-verification": "网络待复核，暂未确认可用",
+  unavailable: "当前网络未连通",
+};
+
 export function buildInstallHandoff(
   recommendation: ReturnType<typeof recommendProvider>,
   appUrl = DEFAULT_APP_URL,
@@ -67,23 +84,29 @@ export function buildInstallHandoff(
   const url = localAppUrl(appUrl);
   const provider = recommendation.primary;
   if (!provider || !keySteps[provider.id]) return null;
-  const textModel = provider.tier === "llm";
+  const choices = recommendation.choices.filter((p) => keySteps[p.id]);
   const steps = [
-    ...keySteps[provider.id],
-    `回到[好感监控器](${url})，打开「聊天设置 → 模型设置」，选择「${provider.appChoice}」，在网页中粘贴 Key${textModel ? "。" : "；型号自动配置。"}`,
-    ...(textModel
-      ? [
-          "等待模型列表出现，选择 Flash 等快速文本型号；若没有列表，填写平台控制台显示的模型 ID。",
-        ]
-      : []),
+    "从上表选择一个当前网络可达的平台，打开该行申请链接，注册并登录。",
+    "按该行路径创建并复制 API Key；只需申请所选平台的 Key。",
+    `回到[好感监控器](${url})，打开「聊天设置 → 模型设置」，选择上表对应的平台，在网页中粘贴 Key。`,
+    "Jev、StartLux 等原生判断模型的型号自动配置；若选 LLM，等待模型列表出现，选择 Flash 等快速文本型号；没有列表时填写平台控制台显示的模型 ID。",
     "点击「检测连接并保存」，等待连接成功。",
     "在电脑微信或 QQ 多选聊天记录并复制，粘贴到网页，确认哪个昵称是自己，开始分析。",
   ];
   return {
     providerId: provider.id,
+    choices,
     steps,
     markdown:
-      `使用页面：[好感监控器](${url})，建议使用「${provider.appChoice}」。\n\n` +
+      `使用页面：[好感监控器](${url})，优先建议「${provider.appChoice}」，也可以选择下列其他模型。\n\n` +
+      "| 模型（页面选项） | 特点与当前网络 | 获取 API Key |\n| --- | --- | --- |\n" +
+      choices
+        .map(
+          (p) =>
+            `| ${p.appChoice} | ${descriptions[p.id]}；${availabilityLabels[p.availability]} | ${keySteps[p.id].join(" ")} |`,
+        )
+        .join("\n") +
+      "\n\n" +
       steps.map((step, i) => `${i + 1}. ${step}`).join("\n"),
   };
 }

@@ -10,9 +10,9 @@
 
 把下面这句话发给有本机操作权限的 Agent：
 
-> 请先读取仓库的 AGENTS.md，帮我安装并打开这个项目。检测网络后，按 Jev → StartLux 等原生判断模型 → LLM 推荐，最后从获取 API Key 开始给我编号使用步骤：https://github.com/FerryCorleone/crush-monitor
+> 请先读取仓库的 AGENTS.md，帮我安装并打开这个项目。检测网络后，按 Jev → StartLux 等原生判断模型 → LLM 的顺序列出至少 3 个选择（含至少一个国内平台），最后从获取 API Key 开始给我编号使用步骤：https://github.com/FerryCorleone/crush-monitor
 
-**安装 Agent 请先读取 [AGENTS.md](AGENTS.md)**：先检查网络，再按上述顺序推荐。安装回复只需一句结果和编号使用步骤，从注册、创建 API Key 开始，到网页配置、导入聊天结束；不列多平台对比表，步骤后不追加注意事项。
+**安装 Agent 请先读取 [AGENTS.md](AGENTS.md)**：先检查网络，按上述顺序列出至少 3 个模型选择，包含国内平台，并附申请链接、简短特点和当前可达情况；默认覆盖 Jev、StartLux、DeepSeek 或千问。随后给出从注册、创建 API Key 到网页配置、导入聊天的编号步骤，步骤后不追加注意事项。
 
 ## 特点
 

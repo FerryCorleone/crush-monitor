@@ -51,7 +51,16 @@ test("every installation handoff starts with registration and key creation and e
       "http://127.0.0.1:3199/",
     )!;
     assert.equal(handoff.providerId, provider.id);
-    assert.match(handoff.steps[0], /https:\/\/.*注册/);
+    assert.match(handoff.steps[0], /上表.*申请链接.*注册/);
+    assert.ok(handoff.choices.length >= 3);
+    assert.ok(handoff.choices.some((p) => p.domestic));
+    for (const choice of handoff.choices) {
+      const row = handoff.markdown
+        .split("\n")
+        .find((line) => line.startsWith(`| ${choice.appChoice} |`))!;
+      assert.match(row, /https:\/\/.*注册.*创建/);
+      assert.match(row, /当前网络可达|网络待复核|当前网络未连通/);
+    }
     const create = handoff.steps.findIndex((step) =>
       /创建并复制|复制生成/.test(step),
     );
@@ -71,7 +80,9 @@ test("every installation handoff starts with registration and key creation and e
     assert.ok(
       !/注意事项|补充说明|下次|停止服务|温馨提示/.test(handoff.markdown),
     );
-    assert.ok(!handoff.markdown.includes("|"));
+    assert.ok(
+      handoff.markdown.indexOf("| 模型") < handoff.markdown.indexOf("1. "),
+    );
     assert.equal(
       (handoff.markdown.match(/^\d+\. /gm) ?? []).length,
       handoff.steps.length,
@@ -85,23 +96,31 @@ test("every installation handoff starts with registration and key creation and e
   }
 });
 
-test("StartLux handoff includes both signup and key links, and never substitutes an LLM", () => {
+test("StartLux remains preferred while Jev and a domestic alternative stay visible with honest network labels", () => {
   const handoff = buildInstallHandoff(scenario("startlux"))!;
   assert.ok(handoff.markdown.includes("https://bamboonode.dev/register"));
   assert.ok(handoff.markdown.includes("https://bamboonode.dev/tokens"));
   assert.ok(handoff.markdown.includes("default"));
-  assert.ok(!/DeepSeek|通义千问/.test(handoff.markdown));
+  assert.equal(handoff.providerId, "startlux");
+  assert.deepEqual(
+    handoff.choices.map((p) => p.id),
+    ["typesafe", "startlux", "deepseek"],
+  );
+  assert.deepEqual(
+    handoff.choices.map((p) => p.availability),
+    ["unavailable", "candidate", "unavailable"],
+  );
   assert.ok(handoff.markdown.includes("型号自动配置"));
 });
 
-test("step count follows the provider workflow rather than a fixed template count", () => {
-  const native = buildInstallHandoff(scenario("startlux"))!;
-  const deepseek = buildInstallHandoff(scenario("deepseek"))!;
+test("shared steps let users choose any listed provider without being forced back to the primary", () => {
   const qwen = buildInstallHandoff(scenario("qwen"))!;
-  assert.ok(deepseek.steps.length > native.steps.length);
-  assert.ok(qwen.steps.length > deepseek.steps.length);
+  assert.equal(qwen.providerId, "qwen");
   assert.ok(qwen.markdown.includes("北京"));
-  assert.ok(deepseek.markdown.includes("等待模型列表出现"));
+  assert.ok(qwen.markdown.includes("等待模型列表出现"));
+  assert.ok(qwen.steps.some((step) => step.includes("选择上表对应的平台")));
+  assert.ok(!qwen.steps.some((step) => /选择「/.test(step)));
+  assert.ok(qwen.markdown.includes("只需申请所选平台的 Key"));
 });
 
 test("uncertain recommendations produce no handoff and links cannot embed credentials or external hosts", () => {

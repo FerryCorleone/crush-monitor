@@ -46,6 +46,46 @@ const summary = (p: ProviderAvailability) => ({
   keyUrl: p.keyUrl,
 });
 
+const confirmedFailure = (p: ProviderAvailability) =>
+  [p.website, p.api].some(
+    (probe) =>
+      probe.httpStatus === 451 ||
+      probe.httpStatus === 404 ||
+      probe.status === "unavailable",
+  );
+
+// Offer different models, not three hosts for the same Jev model. Connectivity
+// labels stay attached even when a blocked option is shown for user choice.
+function modelChoices(
+  ranked: ProviderAvailability[],
+  primary: ProviderAvailability | null,
+) {
+  const best = (items: ProviderAvailability[]) =>
+    items.find((p) => p.candidate) ??
+    items.find((p) => !confirmedFailure(p)) ??
+    items[0];
+  const domestic = (p: ProviderAvailability) =>
+    ["deepseek", "qwen"].includes(p.id);
+  const chosen = [
+    best(ranked.filter((p) => p.group === "jev")),
+    ranked.find((p) => p.id === "startlux") ??
+      best(ranked.filter((p) => p.group === "decision")),
+    best(ranked.filter(domestic)),
+    primary,
+  ].filter((p): p is ProviderAvailability => Boolean(p));
+  return [...new Map(chosen.map((p) => [p.id, p])).values()]
+    .sort((a, b) => order(a.id) - order(b.id))
+    .map((p) => ({
+      ...summary(p),
+      domestic: domestic(p),
+      availability: p.candidate
+        ? ("candidate" as const)
+        : confirmedFailure(p)
+          ? ("unavailable" as const)
+          : ("needs-verification" as const),
+    }));
+}
+
 function selectCandidate(ranked: ProviderAvailability[]): {
   provider: ProviderAvailability | null;
   pending: string[];
@@ -56,15 +96,7 @@ function selectCandidate(ranked: ProviderAvailability[]): {
     if (candidate) return { provider: candidate, pending: [] };
     // An unauthenticated 403/timeout can be a browser challenge, proxy mismatch
     // or transient failure. Do not turn that uncertainty into "domestic only".
-    const pending = current.filter(
-      (p) =>
-        ![p.website, p.api].some(
-          (probe) =>
-            probe.httpStatus === 451 ||
-            probe.httpStatus === 404 ||
-            probe.status === "unavailable",
-        ),
-    );
+    const pending = current.filter((p) => !confirmedFailure(p));
     if (pending.length)
       return { provider: null, pending: pending.map((p) => p.id) };
   }
@@ -94,6 +126,7 @@ export function recommendProvider(providers: ProviderAvailability[]) {
     priority: TIER_ORDER,
     primary: primary ? summary(primary) : null,
     fallback: fallback ? summary(fallback) : null,
+    choices: modelChoices(ranked, primary),
     requiresBrowserVerification: pending.length > 0,
     pendingProviders: pending,
   };
