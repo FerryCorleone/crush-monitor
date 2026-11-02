@@ -91,6 +91,9 @@ test("local HTTP settings: CSRF/host guards, successful verification, no secret 
     assert.ok(ready, "server started");
     const view = await (await fetch(base + "/api/settings")).json();
     assert.equal(view.configured, false);
+    assert.equal(view.preset, "typesafe");
+    assert.equal(view.protocol, "jev");
+    assert.equal(view.model, "jev-1.13.0");
     assert.ok(view.token);
     assert.equal(
       await new Promise<number | undefined>((resolve, reject) => {

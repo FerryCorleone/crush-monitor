@@ -248,10 +248,10 @@ export function publicSettings() {
     };
   } catch {
     return {
-      preset: "deepseek",
-      protocol: "openai" as const,
-      baseUrl: MODEL_PRESETS.find((p) => p.id === "deepseek")!.baseUrl,
-      model: MODEL_PRESETS.find((p) => p.id === "deepseek")!.model,
+      preset: "typesafe",
+      protocol: "jev" as const,
+      baseUrl: "",
+      model: MODEL_PRESETS.find((p) => p.id === "typesafe")!.model,
       jsonMode: true,
       configured: false,
       hasKey: false,

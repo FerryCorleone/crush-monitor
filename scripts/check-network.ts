@@ -2,18 +2,18 @@ import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { MODEL_PRESETS } from "../shared/model-presets";
 import { PROVIDERS } from "../server/provider-config";
+import { LIQUID_ENDPOINT } from "../server/liquid";
+import {
+  recommendProvider,
+  type NetworkStatus as Status,
+  type Probe,
+  type ProviderAvailability,
+  type ProviderTier,
+} from "../shared/provider-recommendation";
 
-type Status =
-  | "reachable"
-  | "auth-required"
-  | "restricted"
-  | "rate-limited"
-  | "unavailable"
-  | "unknown";
-type Probe = { status: Status; httpStatus?: number; elapsedMs: number };
 type Target = {
   id: string;
-  group: "jev" | "mainland" | "alternative";
+  group: ProviderTier;
   name: string;
   website: string;
   api: string;
@@ -34,7 +34,7 @@ const llm = (id: "deepseek" | "qwen"): Target => {
   const p = MODEL_PRESETS.find((p) => p.id === id)!;
   return {
     id,
-    group: "mainland",
+    group: "llm",
     name: p.name,
     website: p.keyUrl,
     api: p.baseUrl + "/models",
@@ -46,9 +46,17 @@ export const NETWORK_TARGETS: Target[] = [
   native("opencode", "jev"),
   native("openrouter", "jev"),
   native("vercel", "jev"),
+  native("startlux", "decision"),
+  {
+    id: "liquid",
+    group: "decision",
+    name: "Liquid AI · d1-ultra",
+    website: MODEL_PRESETS.find((p) => p.id === "liquid")!.keyUrl,
+    api: LIQUID_ENDPOINT,
+    method: "POST",
+  },
   llm("deepseek"),
   llm("qwen"),
-  native("startlux", "alternative"),
 ];
 
 export function classifyStatus(code: number, api: boolean): Status {
@@ -119,20 +127,24 @@ export async function checkNetwork(fetchImpl: typeof fetch = fetch) {
   await Promise.all(Array.from({ length: 4 }, worker));
   const accessible = (probe: Probe) =>
     ["reachable", "auth-required"].includes(probe.status);
-  const providers = NETWORK_TARGETS.map((target, i) => ({
-    id: target.id,
-    name: target.name,
-    group: target.group,
-    keyUrl: target.website,
-    website: probes[i * 2],
-    api: probes[i * 2 + 1],
-    candidate: accessible(probes[i * 2]) && accessible(probes[i * 2 + 1]),
-  }));
+  const providers: ProviderAvailability[] = NETWORK_TARGETS.map(
+    (target, i) => ({
+      id: target.id,
+      name: target.name,
+      appChoice: MODEL_PRESETS.find((p) => p.id === target.id)!.name,
+      group: target.group,
+      keyUrl: target.website,
+      website: probes[i * 2],
+      api: probes[i * 2 + 1],
+      candidate: accessible(probes[i * 2]) && accessible(probes[i * 2 + 1]),
+    }),
+  );
   return {
     checkedAt: new Date().toISOString(),
     modelCallVerified: false,
     note: "仅检查当前命令行网络下的网站和无 Key 接口可达性；401 表示需要认证，不代表 Key、地区、额度或模型调用已验证。403 也可能是防爬限制，可用本机浏览器复核网站。",
     providers,
+    recommendation: recommendProvider(providers),
   };
 }
 
@@ -156,6 +168,16 @@ if (
       console.log(
         `${p.name}：网站 ${labels[p.website.status]}；接口 ${labels[p.api.status]} → ${p.keyUrl}`,
       );
+    const recommendation = report.recommendation;
+    if (recommendation.primary)
+      console.log(
+        `优先推荐：${recommendation.primary.appChoice} → ${recommendation.primary.keyUrl}（待填写 Key 检测）`,
+      );
+    else if (recommendation.requiresBrowserVerification)
+      console.log(
+        `需先在浏览器复核：${recommendation.pendingProviders.join("、")}。暂不降级推荐 LLM；检查浏览器与启动进程是否使用同一代理链路。`,
+      );
+    else console.log("当前未找到可推荐入口，请检查网络后重试。");
     console.log(report.note);
   }
 }
