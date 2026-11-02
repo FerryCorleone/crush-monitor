@@ -50,7 +50,7 @@ Existing Jev `.env` settings remain supported, as does `npm run setup -- --en`. 
 
 ## Development
 
-React + TypeScript + Vite + Express. The existing categories, scoring weights, grades, next-step rules and incremental chat processing are shared by all providers. The adapter supports OpenAI Chat Completions, Anthropic Messages, OpenAI Decisions, and native Jev endpoints (TypeSafe, Vercel, OpenRouter, OpenCode).
+React + TypeScript + Vite + Express. The existing categories, scoring weights, grades, next-step rules and incremental chat processing are shared by all providers. The adapter supports Liquid System One (`d1-ultra`), OpenAI Chat Completions, Anthropic Messages, OpenAI Decisions, and native Jev endpoints (TypeSafe, Vercel, OpenRouter, OpenCode).
 
 Jev distributions remain unchanged. LLMs return relative weights against the same questions and categories; code normalizes them into distributions and derives scores and distribution concentration. LLM percentages are not calibrated probabilities of someone's feelings, nor directly comparable measurements to Jev. No reply generation or new analysis features are added.
 

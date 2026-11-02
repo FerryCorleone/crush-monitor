@@ -2,7 +2,7 @@
 
 [简体中文](README.md) · English
 
-A tool for looking at conversations with your crush or partner, using Jev, StartLux, OpenAI Decisions, or a text LLM. It helps you make sense of emotions and intentions, and spot replies you could have worded better.
+A tool for looking at conversations with your crush or partner, using Jev, StartLux, Liquid AI, OpenAI Decisions, or a text LLM. It helps you make sense of emotions and intentions, and spot replies you could have worded better.
 
 AI doesn't know your relationship or what happens outside the chat. Take the results lightly—as another perspective. Your own judgment and an honest conversation still matter more.
 
@@ -44,6 +44,7 @@ Open **http://127.0.0.1:3178/**. Model settings appear on first launch; later, o
 | Jev | [Vercel AI Gateway](https://vercel.com/d?to=/%5Bteam%5D/~/ai-gateway/api-keys): Create key | `Jev · Vercel AI Gateway` | Monthly $5 free credits currently cannot be used for Jev; card verification and usable paid credits required. Use a Gateway key, not an account token |
 | Jev | [OpenRouter](https://openrouter.ai/settings/keys): Create Key | `Jev · OpenRouter` | Pay-as-you-go; check the dashboard for trial-credit eligibility |
 | Native decisions | [StartLux · Bamboo](https://bamboonode.dev/register): register → [API Keys](https://bamboonode.dev/tokens) → create in the `default` group | `StartLux · Bamboo（试验性）` | Free during the promotion, with no top-up required. API hosted by Bamboo; model ID is preset |
+| Native decisions | [Liquid AI](https://console.liquid.ai/): sign in → Dashboard → API Keys → create | `Liquid AI · d1-ultra` | $2 trial per new organization; $0.042 per million input tokens, billed per question. Chats may be used for training; review the [data terms](https://www.liquid.ai/terms-conditions) |
 | Native decisions | [OpenAI Decisions](https://platform.openai.com/api-keys): create an official API key | `OpenAI Decisions · GPT-6 Luna（测试版）` | Paid API, beta entry; ChatGPT/Codex subscriptions exclude API credits |
 | LLM | [DeepSeek](https://platform.deepseek.com/api_keys): API Keys → create | `DeepSeek` | Pay-as-you-go; check the dashboard for credits. Prefer a fast Flash model |
 | LLM | [Qwen / Bailian](https://bailian.console.aliyun.com/): select Beijing → API Key → create | `通义千问 · 百炼（北京）` | Check dashboard trial eligibility. Regional keys cannot be mixed; prefer Qwen Flash |

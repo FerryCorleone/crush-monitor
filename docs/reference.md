@@ -52,7 +52,7 @@ Key 保存在本机服务目录的 `.runtime/model.json`，不写入浏览器存
 
 ## 开发
 
-React + TypeScript + Vite + Express。所有模型共用同一套情绪、意图、好感度、回复评级、下一步规则。支持 OpenAI Chat Completions、Anthropic Messages、OpenAI Decisions，以及原来的 Jev 接口：
+React + TypeScript + Vite + Express。所有模型共用同一套情绪、意图、好感度、回复评级、下一步规则。支持 Liquid System One、OpenAI Chat Completions、Anthropic Messages、OpenAI Decisions，以及原来的 Jev 接口：
 
 | 平台 | 接口 | 模型 |
 | --- | --- | --- |
@@ -61,6 +61,7 @@ React + TypeScript + Vite + Express。所有模型共用同一套情绪、意图
 | OpenRouter | [Decisions（Alpha）](https://openrouter.ai/docs/api/api-reference/alphadecisions/submit-a-decisions-questions-and-answers-request) | `typesafe/jev-1.13` |
 | OpenCode | [System One](https://opencode.ai/v2/docs/console/models/#jev) | `jev-1.13-free`（限时免费） |
 | StartLux · Bamboo | [原生 Decisions](https://bamboonode.dev/docs/ai-model/decisions/startlux) | `startlux-decision-27b-autothink` |
+| Liquid AI | [System One](https://docs.liquid.ai/lfm/models/d1) | `d1-ultra` |
 | OpenAI | [Decisions（公开测试）](https://developers.openai.com/api/docs/guides/decisions) | `gpt-6-luna`（仅模拟接口测试） |
 
 Jev 保留原始概率和确定度。LLM 按相同问题和分类返回相对权重，代码归一化为分布并计算评分与分布集中度；LLM 百分比是模型估计，不是经校准的真实心理概率，也不能与 Jev 的结果直接当作同尺度测量。没有新增回复生成、改写或报告功能。

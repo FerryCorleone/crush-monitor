@@ -4,6 +4,7 @@ import { z } from "zod";
 import { activeConfig, type ActiveConfig } from "./model-config";
 import { evaluateLlm } from "./llm";
 import { compileStartluxRequest, planStartluxBatches } from "./startlux";
+import { compileLiquidRequest } from "./liquid";
 import {
   compileDecisionsRequest,
   decodeDecisions,
@@ -164,6 +165,27 @@ export async function evaluate(
     } finally {
       controller.abort();
     }
+  }
+  if ("engine" in config && config.engine === "liquid") {
+    const result = validateResult(
+      await requestProvider(
+        config,
+        compileLiquidRequest(payload),
+        signal,
+        fetchImpl,
+      ),
+      payload.questions,
+    );
+    if (
+      result.model !== config.model ||
+      Object.keys(result.answers).length !==
+        Object.keys(payload.questions).length
+    )
+      throw new ProviderError(
+        502,
+        "Liquid AI 返回的型号或判断不匹配，请重试。 / Unexpected Liquid response.",
+      );
+    return result;
   }
   if ("engine" in config && config.engine === "decisions") {
     const deadline = AbortSignal.timeout(120000);

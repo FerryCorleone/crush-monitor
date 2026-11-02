@@ -133,6 +133,7 @@ export function ModelSettings({
     if (
       form.protocol === "jev" ||
       form.protocol === "decisions" ||
+      form.protocol === "systemone" ||
       (!form.apiKey.trim() && !sameKey) ||
       !form.baseUrl
     )
@@ -250,142 +251,152 @@ export function ModelSettings({
             </label>
           </>
         )}
-        {form.protocol !== "jev" && form.protocol !== "decisions" && (
-          <>
-            <div className="field">
-              <span className="field-heading">
-                <label htmlFor="model-id">选择模型</label>
-                <button
-                  type="button"
-                  className="text-button"
-                  disabled={
-                    busy === "models" ||
-                    (!form.apiKey && !sameKey) ||
-                    !form.baseUrl
-                  }
-                  onClick={() => void submit("models")}
-                >
-                  {busy === "models" ? "读取中…" : "刷新模型列表"}
-                </button>
-              </span>
-              {busy === "models" && (
-                <span className="model-list-status" role="status">
-                  正在读取平台的文本模型…
-                </span>
-              )}
-              <div
-                className="model-picker"
-                onBlur={(e) => {
-                  if (!e.currentTarget.contains(e.relatedTarget as Node | null))
-                    setPickerOpen(false);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") {
-                    setPickerOpen(false);
-                    modelInput.current?.focus();
-                  }
-                  if (e.key === "ArrowDown" && !pickerOpen && models.length) {
-                    e.preventDefault();
-                    setFilter("");
-                    setPickerOpen(true);
-                  }
-                }}
-              >
-                <div className="model-value">
-                  <input
-                    ref={modelInput}
-                    id="model-id"
-                    aria-label="模型 ID"
-                    value={form.model}
-                    onChange={(e) => {
-                      setForm({ ...form, model: e.target.value });
-                      setPickerOpen(false);
-                      setError("");
-                    }}
-                    onClick={() => {
-                      if (models.length) {
-                        setFilter("");
-                        setPickerOpen(true);
-                      }
-                    }}
-                    placeholder="选择型号，也可以直接输入模型 ID"
-                    required
-                    spellCheck={false}
-                  />
+        {form.protocol === "systemone" && (
+          <p className="model-list-status">
+            型号：d1-ultra。按每个问题计算输入费用。Liquid
+            通用条款允许将内容用于训练；仅使用虚构、非个人样本，勿上传私人聊天。
+          </p>
+        )}
+        {form.protocol !== "jev" &&
+          form.protocol !== "decisions" &&
+          form.protocol !== "systemone" && (
+            <>
+              <div className="field">
+                <span className="field-heading">
+                  <label htmlFor="model-id">选择模型</label>
                   <button
                     type="button"
-                    className="model-picker-toggle"
-                    aria-label="展开模型列表"
-                    aria-expanded={pickerOpen}
-                    disabled={!models.length}
-                    onClick={() => {
-                      setFilter("");
-                      setPickerOpen(!pickerOpen);
-                    }}
+                    className="text-button"
+                    disabled={
+                      busy === "models" ||
+                      (!form.apiKey && !sameKey) ||
+                      !form.baseUrl
+                    }
+                    onClick={() => void submit("models")}
                   >
-                    ⌄
+                    {busy === "models" ? "读取中…" : "刷新模型列表"}
                   </button>
-                </div>
-                {pickerOpen && models.length > 0 && (
-                  <div className="model-picker-panel">
+                </span>
+                {busy === "models" && (
+                  <span className="model-list-status" role="status">
+                    正在读取平台的文本模型…
+                  </span>
+                )}
+                <div
+                  className="model-picker"
+                  onBlur={(e) => {
+                    if (
+                      !e.currentTarget.contains(e.relatedTarget as Node | null)
+                    )
+                      setPickerOpen(false);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      setPickerOpen(false);
+                      modelInput.current?.focus();
+                    }
+                    if (e.key === "ArrowDown" && !pickerOpen && models.length) {
+                      e.preventDefault();
+                      setFilter("");
+                      setPickerOpen(true);
+                    }
+                  }}
+                >
+                  <div className="model-value">
                     <input
-                      aria-label="搜索模型"
-                      placeholder="搜索型号，例如 qwen、deepseek、kimi"
-                      value={filter}
-                      onChange={(e) => setFilter(e.target.value)}
+                      ref={modelInput}
+                      id="model-id"
+                      aria-label="模型 ID"
+                      value={form.model}
+                      onChange={(e) => {
+                        setForm({ ...form, model: e.target.value });
+                        setPickerOpen(false);
+                        setError("");
+                      }}
+                      onClick={() => {
+                        if (models.length) {
+                          setFilter("");
+                          setPickerOpen(true);
+                        }
+                      }}
+                      placeholder="选择型号，也可以直接输入模型 ID"
+                      required
+                      spellCheck={false}
                     />
-                    <div
-                      className="model-options"
-                      role="listbox"
-                      aria-label="平台模型"
+                    <button
+                      type="button"
+                      className="model-picker-toggle"
+                      aria-label="展开模型列表"
+                      aria-expanded={pickerOpen}
+                      disabled={!models.length}
+                      onClick={() => {
+                        setFilter("");
+                        setPickerOpen(!pickerOpen);
+                      }}
                     >
-                      {visibleModels.map((m) => (
-                        <button
-                          key={m}
-                          type="button"
-                          role="option"
-                          aria-selected={m === form.model}
-                          onClick={() => chooseModel(m)}
-                        >
-                          {modelLabel(m, form.preset)}
-                          {m === form.model && (
-                            <span aria-hidden="true">✓</span>
-                          )}
-                        </button>
-                      ))}
-                      {!visibleModels.length && (
-                        <p className="model-list-status">
-                          没有匹配的型号，可在上方直接填写 ID。
-                        </p>
-                      )}
-                    </div>
+                      ⌄
+                    </button>
                   </div>
+                  {pickerOpen && models.length > 0 && (
+                    <div className="model-picker-panel">
+                      <input
+                        aria-label="搜索模型"
+                        placeholder="搜索型号，例如 qwen、deepseek、kimi"
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                      />
+                      <div
+                        className="model-options"
+                        role="listbox"
+                        aria-label="平台模型"
+                      >
+                        {visibleModels.map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            role="option"
+                            aria-selected={m === form.model}
+                            onClick={() => chooseModel(m)}
+                          >
+                            {modelLabel(m, form.preset)}
+                            {m === form.model && (
+                              <span aria-hidden="true">✓</span>
+                            )}
+                          </button>
+                        ))}
+                        {!visibleModels.length && (
+                          <p className="model-list-status">
+                            没有匹配的型号，可在上方直接填写 ID。
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {modelError && (
+                  <span className="model-list-status" role="status">
+                    {modelError}
+                  </span>
                 )}
               </div>
-              {modelError && (
-                <span className="model-list-status" role="status">
-                  {modelError}
-                </span>
-              )}
-            </div>
-            <details className="model-advanced">
-              <summary>连接选项</summary>
-              <p>{form.baseUrl}</p>
-              {form.protocol === "openai" && (
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={form.jsonMode}
-                    onChange={(e) =>
-                      setForm({ ...form, jsonMode: e.target.checked })
-                    }
-                  />{" "}
-                  使用 JSON 模式（接口不支持时可关闭）
-                </label>
-              )}
-            </details>
-          </>
-        )}
+              <details className="model-advanced">
+                <summary>连接选项</summary>
+                <p>{form.baseUrl}</p>
+                {form.protocol === "openai" && (
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={form.jsonMode}
+                      onChange={(e) =>
+                        setForm({ ...form, jsonMode: e.target.checked })
+                      }
+                    />{" "}
+                    使用 JSON 模式（接口不支持时可关闭）
+                  </label>
+                )}
+              </details>
+            </>
+          )}
       </fieldset>
       {error && (
         <p className="model-error" role="alert">

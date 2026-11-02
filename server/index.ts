@@ -48,9 +48,11 @@ app.get("/api/health", (_req, res) => {
     engine:
       s.protocol === "jev"
         ? "jev"
-        : s.protocol === "decisions"
-          ? "decisions"
-          : "llm",
+        : s.protocol === "systemone"
+          ? "liquid"
+          : s.protocol === "decisions"
+            ? "decisions"
+            : "llm",
     provider: s.preset,
     model: s.model,
     fingerprint: s.fingerprint,

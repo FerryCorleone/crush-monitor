@@ -2,7 +2,7 @@
 
 简体中文 · [English](README.en.md)
 
-一个分析你和 Crush 或对象聊天的小工具，支持 Jev、StartLux、OpenAI Decisions 和常见文本大模型。帮你读懂一点对方的情绪和想法，也看看自己的回复哪里没表达好、可以怎么调整。
+一个分析你和 Crush 或对象聊天的小工具，支持 Jev、StartLux、Liquid AI、OpenAI Decisions 和常见文本大模型。帮你读懂一点对方的情绪和想法，也看看自己的回复哪里没表达好、可以怎么调整。
 
 不过，AI 不知道你们现实中怎么相处，也不了解聊天之外的故事。分析结果就当图一乐、做个参考。怎么理解对方、怎么表达自己，最后还是得靠自己的感受和真诚。
 
@@ -44,6 +44,7 @@ npm start
 | Jev | [Vercel AI Gateway](https://vercel.com/d?to=/%5Bteam%5D/~/ai-gateway/api-keys)：Create key | `Jev · Vercel AI Gateway` | 当前每月 $5 免费额度不能用于 Jev；需绑卡及可用付费额度。创建 Gateway Key，不是账户 Token |
 | Jev | [OpenRouter](https://openrouter.ai/settings/keys)：Create Key | `Jev · OpenRouter` | Jev 按量付费；试用额度是否适用，以控制台为准 |
 | 原生判断 | [StartLux · Bamboo](https://bamboonode.dev/register)：注册 → [API Keys](https://bamboonode.dev/tokens) → 创建，分组选 `default` | `StartLux · Bamboo（试验性）` | 推广期免费，无需充值；由 Bamboo 提供 API，型号自动配置 |
+| 原生判断 | [Liquid AI](https://console.liquid.ai/)：登录 → Dashboard → API Keys → 创建 | `Liquid AI · d1-ultra` | 新组织 $2 试用；每百万输入 Token $0.042，按每道问题计费；聊天可能用于训练，先看[数据条款](https://www.liquid.ai/terms-conditions) |
 | 原生判断 | [OpenAI Decisions](https://platform.openai.com/api-keys)：创建官方 API Key | `OpenAI Decisions · GPT-6 Luna（测试版）` | 付费 API，测试版入口；ChatGPT/Codex 订阅不含 API 额度 |
 | LLM | [DeepSeek](https://platform.deepseek.com/api_keys)：API Keys → 创建 | `DeepSeek` | 按量付费，赠额以控制台为准；优先选择 Flash 快速型号 |
 | LLM | [通义千问 · 百炼](https://bailian.console.aliyun.com/)：地域选北京 → API Key → 创建 | `通义千问 · 百炼（北京）` | 试用额度以控制台为准；北京 Key 不能与其他地域混用，优先选 Qwen Flash |
