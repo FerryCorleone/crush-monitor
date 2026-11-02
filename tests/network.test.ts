@@ -174,6 +174,68 @@ test("a fallback also respects unresolved native candidates instead of jumping t
   assert.equal(r.fallback, null);
 });
 
+test("model choices cover Jev, StartLux and a domestic model in priority order, regardless of probe order", () => {
+  const providers = NETWORK_TARGETS.map((p) => availability(p.id, "ok"));
+  const r = recommendProvider(providers.reverse());
+  assert.deepEqual(
+    r.choices.map((p) => p.id),
+    ["typesafe", "startlux", "deepseek"],
+  );
+  assert.ok(r.choices.some((p) => p.domestic));
+  assert.ok(r.choices.every((p) => p.availability === "candidate"));
+  assert.equal(r.primary?.id, "typesafe");
+});
+
+test("choose a reachable Jev host and Qwen when DeepSeek is blocked without dropping StartLux", () => {
+  const r = recommendProvider(
+    NETWORK_TARGETS.map((p) =>
+      availability(
+        p.id,
+        ["opencode", "startlux", "qwen"].includes(p.id) ? "ok" : "blocked",
+      ),
+    ),
+  );
+  assert.deepEqual(
+    r.choices.map((p) => p.id),
+    ["opencode", "startlux", "qwen"],
+  );
+  assert.equal(r.primary?.id, "opencode");
+});
+
+test("showing three options never presents failed or uncertain routes as verified alternatives", () => {
+  const r = recommendProvider(
+    NETWORK_TARGETS.map((p) =>
+      availability(
+        p.id,
+        p.id === "startlux"
+          ? "unknown"
+          : p.id === "deepseek"
+            ? "ok"
+            : "blocked",
+      ),
+    ),
+  );
+  assert.equal(r.primary, null);
+  assert.equal(r.status, "needs-verification");
+  assert.deepEqual(
+    r.choices.map((p) => p.availability),
+    ["unavailable", "needs-verification", "candidate"],
+  );
+});
+
+test("a Liquid primary is retained in addition to the three default model choices", () => {
+  const r = recommendProvider(
+    NETWORK_TARGETS.map((p) =>
+      availability(p.id, p.id === "liquid" ? "ok" : "blocked"),
+    ),
+  );
+  assert.equal(r.primary?.id, "liquid");
+  assert.deepEqual(
+    r.choices.map((p) => p.id),
+    ["typesafe", "startlux", "liquid", "deepseek"],
+  );
+});
+
 test("network checks follow bounded HTTPS website redirects without treating API redirects or loops as success", async () => {
   const calls = new Map<string, number>();
   const redirected = new Set<string>();
